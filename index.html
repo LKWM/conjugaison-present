@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leçon 1: Prédicat, Infinitif et Radical</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        /* Google Fonts Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* MODIFIED (Request 1): Changed min-height to height for mobile viewport stability */
+            height: 100vh;
+            padding: 1rem;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #course-container {
+            width: 100%;
+            max-width: 1000px;
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            /* MODIFIED (Request 1): Added flex-shrink to prevent shrinking in body */
+            flex-shrink: 0;
+        }
+
+        #slide-wrapper {
+            /* PC-first aspect ratio */
+            aspect-ratio: 1000 / 600;
+            width: 100%;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 5%; /* Use percentage for responsive padding */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            background-color: white;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive adjustments for mobile (portrait) */
+        @media (max-aspect-ratio: 9/10) {
+            #course-container {
+                height: 95vh; /* Limit height on mobile */
+                width: auto;
+            }
+            #slide-wrapper {
+                aspect-ratio: 9 / 16;
+            }
+             .slide {
+                padding: 8%;
+            }
+        }
+        
+        .title-text {
+             font-size: clamp(1.5rem, 4vw, 2.5rem); /* Responsive font size */
+             font-weight: 700;
+             color: #333;
+        }
+
+        .body-text {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            color: #1a1a1a;
+            line-height: 1.6;
+            max-width: 80%;
+        }
+        
+        .terminaison {
+            color: #ef4444; /* Red color */
+            font-weight: 600;
+        }
+        
+        .radical {
+            color: #3b82f6; /* Blue color */
+            font-weight: 600;
+        }
+
+        .nav-button {
+            background-color: #38bdf8; /* Sky blue */
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px; /* Pill shape */
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, visibility 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .nav-button:hover {
+            background-color: #0ea5e9; /* Darker sky blue */
+            transform: translateY(-2px);
+        }
+        
+        .nav-button:disabled {
+            background-color: #a0aec0; /* Gray */
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 10px;
+            width: 0%;
+            background-color: #38bdf8;
+            transition: width 0.5s ease;
+        }
+
+        .vocab-card-container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch; /* Make cards same height */
+            gap: 5%; /* Responsive gap */
+            width: 100%;
+            flex-wrap: nowrap; /* CRITICAL: Prevents cards from stacking on mobile */
+        }
+
+        .vocab-card {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 5%;
+            width: 45%;
+            flex-shrink: 0; /* CRITICAL: Prevents cards from shrinking and wrapping */
+            aspect-ratio: 1 / 1; /* Make card square */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .image-card {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .vocab-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        
+        .radical-card {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 0.5rem;
+            font-size: clamp(2rem, 5vw, 3rem);
+        }
+        
+        /* New styles for the image card on the radical page */
+        .radical-card.image-card {
+            width: 45%; /* Adjusted width */
+            max-width: 300px; /* Adjusted max-width */
+            aspect-ratio: 1 / 1; /* Make card square */
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-shadow: 0 0 8px rgba(0,0,0,0.7);
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .radical-card.image-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        
+        .footnote {
+             font-size: clamp(0.75rem, 1.8vw, 1rem);
+             color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="course-container">
+        <!-- Slide content will be injected here -->
+        <div id="slide-wrapper"></div>
+        
+        <!-- Navigation -->
+        <div class="flex justify-between items-center p-4 bg-gray-50 border-t border-gray-200">
+             <button id="prev-btn" class="nav-button">Précédent</button>
+             <div class="w-1/3">
+                 <div class="progress-bar-container">
+                      <div id="progress-bar" class="progress-bar"></div>
+                 </div>
+             </div>
+             <button id="next-btn" class="nav-button">Suivant</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slideWrapper = document.getElementById('slide-wrapper');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+
+            // --- Sound Synthesis Setup (Tone.js) ---
+            const sounds = {
+                nextPage: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+                completion: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination(),
+                koreanWord: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination()
+            };
+            sounds.completion.volume.value = -6;
+
+            // --- Text-to-Speech Setup ---
+            const synth = window.speechSynthesis;
+            
+            // --- TTS FIX START ---
+            // This variable will hold the dedicated French voice
+            let frenchVoice = null;
+
+            const speak = (text, lang = 'fr-FR') => {
+                if (synth.speaking) {
+                    synth.cancel(); // Stop any currently playing speech
+                }
+                setTimeout(() => {
+                    const utterThis = new SpeechSynthesisUtterance(text);
+                    utterThis.lang = lang; // Set lang as a fallback
+                    
+                    // Explicitly set the French voice if found
+                    if (lang === 'fr-FR' && frenchVoice) {
+                        utterThis.voice = frenchVoice;
+                    }
+
+                    utterThis.pitch = 1;
+                    utterThis.rate = 0.9;
+                    synth.speak(utterThis);
+                }, 100);
+            };
+
+            // Function to load and find the French voice
+            function loadFrenchVoice() {
+                const voices = synth.getVoices();
+                // Prioritize 'fr-FR'
+                frenchVoice = voices.find(voice => voice.lang === 'fr-FR');
+                if (!frenchVoice) {
+                    // Fallback to any French variant
+                    frenchVoice = voices.find(voice => voice.lang.startsWith('fr-'));
+                }
+                
+                if (frenchVoice) {
+                    console.log("French voice loaded:", frenchVoice.name);
+                } else {
+                    console.warn("No French voice found. TTS might use browser default.");
+                }
+            }
+
+            // Load voices asynchronously. This is CRITICAL.
+            if (synth.onvoiceschanged !== undefined) {
+                synth.onvoiceschanged = loadFrenchVoice;
+            }
+            loadFrenchVoice(); // Initial call in case voices are already loaded
+            // --- TTS FIX END ---
+
+
+            // --- Course Content ---
+            const courseData = [
+                // 1. New Cover
+                { type: 'cover', title: "Leçon 1 : Prédicat, Infinitif et radical", text: "Dans ce cours, nous allons apprendre quelques concepts grammaticaux essentiels à la conjugaison avec des exemples." },
+                // 2. Definition
+                { type: 'definition', title: 'Prédicat (서술어)', text: "En coréen, le terme 'Prédicat' désigne l'ensemble des mots qui décrivent le mouvement, l'état ou la nature du sujet. Cela correspond aux verbes et adjectifs en français." },
+                // 3. Vocab
+                { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_d1859f2594f143d8b898a61786cb0f7a~mv2.png', fr: 'Aller', kr: '가다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3' },
+                // 4. Vocab
+                { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_be8ea416444c4ebf88880a4a12471105~mv2.png', fr: 'Manger', kr: '먹다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_430b147143644a538566e98178eaf1c3.mp3' },
+                // 5. Vocab
+                { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_7496676897084028aaaae7868fd88a69~mv2.png', fr: 'Être joli', kr: '예쁘다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_da09a3443b234b3d9416ba37ede44cd8.mp3' },
+                // 6. Vocab
+                { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_2f0ad83afd32405087fa14ff42603899~mv2.png', fr: 'Faire froid', kr: '춥다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_44ea5d2318e841c4af555e0cfab3dcef.mp3' },
+                // 7. Definition
+                { type: 'definition', title: 'Infinitif (원형)', text: "L'infinitif désigne l'état non conjugué du prédicat. Tous les prédicats à l'infinitif en coréen se terminent par '-다'." },
+                // 8. Vocab
+                { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_e1f86611da5c4b448b5d5c0e0c55b1c7~mv2.png', fr: 'Dormir', kr: '자다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3' },
+                // 9. Vocab - CHANGED
+                // MODIFIED: Corrected 'https"' to 'https://'
+                { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_13e71f8db795459bac1b742834eac4ba~mv2.png', fr: 'Chercher', kr: '찾다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_51aec296c1074a16857f0ed95541bbf3.mp3' },
+                // 10. Definition
+                { type: 'definition', title: 'Radical (어근)', text: "Le radical est la partie du prédicat qui ne change pas lors de la conjugaison. C'est la partie qui reste après avoir retiré la terminaison '-다'." },
+                // 11. Radical Split
+                { type: 'radical_split', infinitive: '가다', fr_infinitive: 'Aller', radical: '가', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_d1859f2594f143d8b898a61786cb0f7a~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3' },
+                // 12. Radical Split
+                { type: 'radical_split', infinitive: '먹다', fr_infinitive: 'Manger', radical: '먹', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_be8ea416444c4ebf88880a4a12471105~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_430b147143644a538566e98178eaf1c3.mp3' },
+                // 13. Radical Split
+                { type: 'radical_split', infinitive: '예쁘다', fr_infinitive: 'Être joli', radical: '예쁘', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_7496676897084028aaaae7868fd88a69~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_da09a3443b234b3d9416ba37ede44cd8.mp3' },
+                // 14. Radical Split
+                { type: 'radical_split', infinitive: '춥다', fr_infinitive: 'Faire froid', radical: '춥', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_2f0ad83afd32405087fa14ff42603899~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_44ea5d2318e841c4af555e0cfab3dcef.mp3' },
+                // 15. Radical Split
+                { type: 'radical_split', infinitive: '자다', fr_infinitive: 'Dormir', radical: '자', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_e1f86611da5c4b448b5d5c0e0c55b1c7~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3' },
+                // 16. Radical Split - CHANGED
+                { type: 'radical_split', infinitive: '찾다', fr_infinitive: 'Chercher', radical: '찾', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_13e71f8db795459bac1b742834eac4ba~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_51aec296c1074a16857f0ed95541bbf3.mp3' },
+                // 17. Completion
+                { type: 'completion', text: "Félicitations ! Pratiquez et mémorisez les prédicats dans la Leçon 2." }
+            ];
+
+            let currentPage = 0;
+
+            const renderPage = () => {
+                const pageData = courseData[currentPage];
+                let contentHTML = '';
+
+                switch (pageData.type) {
+                    case 'cover':
+                        contentHTML = `
+                            <h1 class="title-text mb-6">${pageData.title}</h1>
+                            <h2 class="body-text" style="font-size: clamp(1.2rem, 3vw, 1.8rem); max-width: 70%;">${pageData.text}</h2>
+                        `;
+                        break;
+                    case 'definition':
+                        contentHTML = `
+                            <h2 class="title-text mb-4">${pageData.title}</h2>
+                            <p class="body-text">${pageData.text}</p>
+                        `;
+                        break;
+                    case 'vocab':
+                        contentHTML = `
+                            <div class="vocab-card-container">
+                                <div class="vocab-card image-card fr-card" style="background-image: url('${pageData.image}')" data-text="${pageData.fr}" title="Cliquez pour écouter"></div>
+                                <div class="vocab-card kr-card" data-audio="${pageData.kr_audio_src}" title="클릭해서 듣기">${pageData.kr}</div>
+                            </div>
+                        `;
+                        break;
+                    case 'radical_split':
+                        contentHTML = `
+                            <div class="radical-card image-card" style="background-image: url('${pageData.image}')" data-audio="${pageData.kr_audio_src}" title="클릭해서 듣기">
+                            </div>
+                            <div class="footnote mb-8">(Définition: ${pageData.fr_infinitive.toLowerCase()})</div>
+                            <div class="text-5xl md:text-6xl lg:text-7xl font-bold flex items-end justify-center gap-4">
+                                <div class="text-center">
+                                    <span class="radical">${pageData.radical}</span>
+                                    <div class="footnote mt-2">(Radical)</div>
+                                </div>
+                                <span class="pb-4 mx-2">+</span>
+                                <div class="text-center">
+                                    <span class="terminaison">${pageData.terminaison}</span>
+                                    <div class="footnote mt-2">(Terminaison)</div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'completion':
+                        contentHTML = `
+                            <h1 class="text-4xl md:text-5xl font-bold text-sky-500 mb-4">🎉</h1>
+                            <p class="body-text">${pageData.text}</p>
+                        `;
+                        break;
+                }
+
+                const slideEl = document.createElement('div');
+                slideEl.className = 'slide';
+                slideEl.innerHTML = contentHTML;
+
+                slideWrapper.innerHTML = '';
+                slideWrapper.appendChild(slideEl);
+                
+                setTimeout(() => slideEl.classList.add('active'), 10);
+
+                // Add event listeners for new interactive elements
+                const frCard = slideWrapper.querySelector('.fr-card');
+                if(frCard) {
+                    frCard.addEventListener('click', () => {
+                        Tone.start();
+                        // The speak function will now automatically use the French voice
+                        speak(frCard.dataset.text, 'fr-FR');
+                    });
+                }
+                const krCard = slideWrapper.querySelector('.kr-card');
+                if(krCard) {
+                    krCard.addEventListener('click', () => {
+                         const audioSrc = krCard.dataset.audio;
+                         if(audioSrc && !audioSrc.startsWith('placeholder') && audioSrc.startsWith('https')) { // Added check for valid URL
+                             const audio = new Audio(audioSrc);
+                             audio.play().catch(e => console.error("Audio playback error:", e));
+                         } else if (audioSrc && !audioSrc.startsWith('https')) {
+                             console.error("Invalid audio URL:", audioSrc); // Log invalid URL
+                         } else {
+                             Tone.start();
+                             sounds.koreanWord.triggerAttackRelease('A4', '8n');
+                         }
+                    });
+                }
+
+                // Listener for the new image card on radical pages
+                const radicalCard = slideWrapper.querySelector('.radical-card.image-card');
+                if (radicalCard) {
+                     radicalCard.addEventListener('click', () => {
+                         const audioSrc = radicalCard.dataset.audio;
+                         if (audioSrc && !audioSrc.startsWith('placeholder') && audioSrc.startsWith('https')) { // Added check for valid URL
+                             const audio = new Audio(audioSrc);
+                             audio.play().catch(e => console.error("Audio playback error:", e));
+                         } else if (audioSrc && !audioSrc.startsWith('https')) {
+                             console.error("Invalid audio URL:", audioSrc); // Log invalid URL
+                         } else {
+                             Tone.start();
+                             sounds.koreanWord.triggerAttackRelease('A4', '8n');
+                         }
+                     });
+                }
+
+                updateNav();
+            };
+            
+            const updateNav = () => {
+                prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
+                nextBtn.disabled = currentPage === courseData.length - 1;
+                
+                const progress = ((currentPage + 1) / courseData.length) * 100;
+                progressBar.style.width = `${progress}%`;
+            };
+
+            const goToNextPage = () => {
+                if (currentPage < courseData.length - 1) {
+                    currentPage++;
+                    renderPage();
+                    Tone.start();
+                    if (currentPage === courseData.length - 1) {
+                        sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5", Tone.now());
+                        // MODIFIED (Request 2): Send postMessage on last page
+                        if (window.parent) {
+                            window.parent.postMessage('lessonCompleted', '*');
+                        }
+                    } else {
+                        sounds.nextPage.triggerAttackRelease('C5', '8n');
+                    }
+                }
+            };
+            
+            const goToPrevPage = () => {
+                if (currentPage > 0) {
+                    currentPage--;
+                    renderPage();
+                }
+            };
+
+            nextBtn.addEventListener('click', goToNextPage);
+            prevBtn.addEventListener('click', goToPrevPage);
+
+            renderPage();
+        });
+    </script>
+</body>
+</html>
