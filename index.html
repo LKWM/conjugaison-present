@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Leçon 1: Prédicat, Infinitif et Radical</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
@@ -10,37 +10,48 @@
         /* Google Fonts Inter */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+        /* 기본 설정: 스크롤 방지 및 박스 모델 */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light blue-gray background */
+            background-color: #f0f4f8;
+            /* 화면 전체 높이를 고정하고 스크롤을 막음 */
+            height: 100vh;
+            width: 100vw;
+            padding: 0.5rem; /* 모바일 여백 최소화 */
+            margin: 0;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* MODIFIED (Request 1): Changed min-height to height for mobile viewport stability */
-            height: 100vh;
-            padding: 1rem;
-            margin: 0;
-            overflow: hidden;
         }
 
         #course-container {
             width: 100%;
             max-width: 1000px;
+            /* 높이를 100%로 설정하여 부모(body) 높이에 맞춤 */
+            height: 100%; 
+            max-height: 100%;
             background-color: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border-radius: 1rem; /* 라운드 약간 축소 */
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
             overflow: hidden;
             display: flex;
-            flex-direction: column;
-            /* MODIFIED (Request 1): Added flex-shrink to prevent shrinking in body */
-            flex-shrink: 0;
+            flex-direction: column; /* 세로 배치 */
+            position: relative;
         }
 
+        /* 슬라이드 영역이 남은 공간을 모두 차지하도록 설정 */
         #slide-wrapper {
-            /* PC-first aspect ratio */
-            aspect-ratio: 1000 / 600;
             width: 100%;
+            flex: 1; /* 남은 세로 공간을 꽉 채움 (비율 고정 제거) */
             position: relative;
+            overflow: hidden; /* 내부 스크롤 방지 */
+            min-height: 0; /* Flex item 최소 높이 버그 방지 */
         }
 
         .slide {
@@ -49,7 +60,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            padding: 5%; /* Use percentage for responsive padding */
+            padding: 1.5rem; /* 내부 패딩 조정 */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -57,7 +68,7 @@
             text-align: center;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
             background-color: white;
         }
 
@@ -66,170 +77,162 @@
             visibility: visible;
         }
 
-        /* Responsive adjustments for mobile (portrait) */
-        @media (max-aspect-ratio: 9/10) {
-            #course-container {
-                height: 95vh; /* Limit height on mobile */
-                width: auto;
-            }
-            #slide-wrapper {
-                aspect-ratio: 9 / 16;
-            }
-             .slide {
-                padding: 8%;
-            }
-        }
-        
+        /* 텍스트 크기 조정 (반응형) */
         .title-text {
-             font-size: clamp(1.5rem, 4vw, 2.5rem); /* Responsive font size */
-             font-weight: 700;
-             color: #333;
+            font-size: clamp(1.25rem, 5vh, 2.25rem); /* 뷰포트 높이(vh) 기반으로 글자 크기 조절 */
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.2;
         }
 
         .body-text {
-            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            font-size: clamp(0.9rem, 2.5vh, 1.25rem);
             color: #1a1a1a;
-            line-height: 1.6;
-            max-width: 80%;
+            line-height: 1.5;
+            max-width: 90%;
         }
-        
-        .terminaison {
-            color: #ef4444; /* Red color */
-            font-weight: 600;
-        }
-        
-        .radical {
-            color: #3b82f6; /* Blue color */
-            font-weight: 600;
+
+        .terminaison { color: #ef4444; font-weight: 600; }
+        .radical { color: #3b82f6; font-weight: 600; }
+
+        /* 하단 내비게이션 바 스타일 */
+        .nav-container {
+            padding: 0.5rem 1rem; /* 패딩 대폭 축소 */
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0; /* 높이 줄어들지 않게 고정 */
+            height: 60px; /* 하단바 높이 명시적 제한 (선택사항) */
         }
 
         .nav-button {
-            background-color: #38bdf8; /* Sky blue */
+            background-color: #38bdf8;
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px; /* Pill shape */
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            padding: 0.5rem 1rem; /* 버튼 패딩 축소 */
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease, visibility 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
         }
 
-        .nav-button:hover {
-            background-color: #0ea5e9; /* Darker sky blue */
-            transform: translateY(-2px);
-        }
-        
-        .nav-button:disabled {
-            background-color: #a0aec0; /* Gray */
-            cursor: not-allowed;
-            transform: none;
-        }
-        
+        .nav-button:hover { background-color: #0ea5e9; }
+        .nav-button:disabled { background-color: #cbd5e1; cursor: not-allowed; box-shadow: none; }
+
         .progress-bar-container {
             width: 100%;
+            height: 6px; /* 바 두께 축소 */
             background-color: #e2e8f0;
             border-radius: 9999px;
             overflow: hidden;
         }
+        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.3s ease; }
 
-        .progress-bar {
-            height: 10px;
-            width: 0%;
-            background-color: #38bdf8;
-            transition: width 0.5s ease;
-        }
-
+        /* 카드 스타일 */
         .vocab-card-container {
             display: flex;
             justify-content: center;
-            align-items: stretch; /* Make cards same height */
-            gap: 5%; /* Responsive gap */
+            align-items: center;
+            gap: 1rem;
             width: 100%;
-            flex-wrap: nowrap; /* CRITICAL: Prevents cards from stacking on mobile */
+            height: 60%; /* 슬라이드 내에서 차지하는 높이 제한 */
         }
 
         .vocab-card {
             background-color: #f8fafc;
             border: 2px solid #e2e8f0;
-            border-radius: 1rem;
-            padding: 5%;
+            border-radius: 0.75rem;
             width: 45%;
-            flex-shrink: 0; /* CRITICAL: Prevents cards from shrinking and wrapping */
-            aspect-ratio: 1 / 1; /* Make card square */
+            max-width: 250px;
+            height: auto;
+            aspect-ratio: 1 / 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: clamp(1.2rem, 3vw, 2rem);
+            font-size: clamp(1rem, 4vw, 1.5rem);
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
-        
+        .vocab-card:active { transform: scale(0.98); }
+
         .image-card {
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
         }
 
-        .vocab-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        }
-        
-        .radical-card {
-            background-color: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 0.5rem;
-            font-size: clamp(2rem, 5vw, 3rem);
-        }
-        
-        /* New styles for the image card on the radical page */
-        .radical-card.image-card {
-            width: 45%; /* Adjusted width */
-            max-width: 300px; /* Adjusted max-width */
-            aspect-ratio: 1 / 1; /* Make card square */
-            background-size: cover;
-            background-position: center;
-            cursor: pointer;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            text-shadow: 0 0 8px rgba(0,0,0,0.7);
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
-            transition: transform 0.2s, box-shadow 0.2s;
+        .radical-split-container {
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             justify-content: center;
+             height: 100%;
+             width: 100%;
         }
 
-        .radical-card.image-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        .radical-card.image-card {
+            width: 120px;
+            height: 120px;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        
+
+        .radical-text-area {
+             font-size: clamp(2.5rem, 8vw, 4rem);
+             font-weight: 700;
+             display: flex;
+             align-items: flex-end;
+             justify-content: center;
+             gap: 0.5rem;
+        }
+
         .footnote {
-             font-size: clamp(0.75rem, 1.8vw, 1rem);
+             font-size: 0.75rem;
              color: #64748b;
+             margin-top: 0.25rem;
+             font-weight: 400;
+        }
+
+        /* 모바일 세로 모드 미디어 쿼리 */
+        @media (max-aspect-ratio: 1/1) {
+             body { padding: 0; } /* 모바일에서 body 패딩 제거하여 전체 사용 */
+             #course-container { border-radius: 0; } /* 모바일 풀스크린 느낌 */
+             .slide { padding: 1rem; }
+             .vocab-card-container { flex-direction: column; height: auto; gap: 1rem; }
+             .vocab-card { width: 60%; max-width: 200px; }
+             
+             /* 카드가 세로로 배치될 때 공간 확보를 위해 카드 크기 조정 */
+             .vocab-card { aspect-ratio: 2.5 / 1; justify-content: flex-start; padding-left: 1.5rem; }
+             .vocab-card.image-card { aspect-ratio: 2.5 / 1; justify-content: center; padding: 0; }
+             
+             /* Radical 페이지 레이아웃 조정 */
+             .radical-card.image-card { width: 100px; height: 100px; margin-bottom: 0.5rem; }
         }
     </style>
 </head>
 <body>
 
     <div id="course-container">
-        <!-- Slide content will be injected here -->
+        <!-- Slide content -->
         <div id="slide-wrapper"></div>
         
-        <!-- Navigation -->
-        <div class="flex justify-between items-center p-4 bg-gray-50 border-t border-gray-200">
-             <button id="prev-btn" class="nav-button">Précédent</button>
-             <div class="w-1/3">
+        <!-- Compact Navigation -->
+        <div class="nav-container">
+             <button id="prev-btn" class="nav-button">이전</button>
+             <div class="w-1/3 mx-2">
                  <div class="progress-bar-container">
                       <div id="progress-bar" class="progress-bar"></div>
                  </div>
              </div>
-             <button id="next-btn" class="nav-button">Suivant</button>
+             <button id="next-btn" class="nav-button">다음</button>
         </div>
     </div>
 
@@ -250,91 +253,45 @@
 
             // --- Text-to-Speech Setup ---
             const synth = window.speechSynthesis;
-            
-            // --- TTS FIX START ---
-            // This variable will hold the dedicated French voice
             let frenchVoice = null;
 
             const speak = (text, lang = 'fr-FR') => {
-                if (synth.speaking) {
-                    synth.cancel(); // Stop any currently playing speech
-                }
+                if (synth.speaking) synth.cancel();
                 setTimeout(() => {
                     const utterThis = new SpeechSynthesisUtterance(text);
-                    utterThis.lang = lang; // Set lang as a fallback
-                    
-                    // Explicitly set the French voice if found
-                    if (lang === 'fr-FR' && frenchVoice) {
-                        utterThis.voice = frenchVoice;
-                    }
-
+                    utterThis.lang = lang;
+                    if (lang === 'fr-FR' && frenchVoice) utterThis.voice = frenchVoice;
                     utterThis.pitch = 1;
                     utterThis.rate = 0.9;
                     synth.speak(utterThis);
                 }, 100);
             };
 
-            // Function to load and find the French voice
             function loadFrenchVoice() {
                 const voices = synth.getVoices();
-                // Prioritize 'fr-FR'
-                frenchVoice = voices.find(voice => voice.lang === 'fr-FR');
-                if (!frenchVoice) {
-                    // Fallback to any French variant
-                    frenchVoice = voices.find(voice => voice.lang.startsWith('fr-'));
-                }
-                
-                if (frenchVoice) {
-                    console.log("French voice loaded:", frenchVoice.name);
-                } else {
-                    console.warn("No French voice found. TTS might use browser default.");
-                }
+                frenchVoice = voices.find(voice => voice.lang === 'fr-FR') || voices.find(voice => voice.lang.startsWith('fr-'));
             }
-
-            // Load voices asynchronously. This is CRITICAL.
-            if (synth.onvoiceschanged !== undefined) {
-                synth.onvoiceschanged = loadFrenchVoice;
-            }
-            loadFrenchVoice(); // Initial call in case voices are already loaded
-            // --- TTS FIX END ---
-
+            if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadFrenchVoice;
+            loadFrenchVoice();
 
             // --- Course Content ---
             const courseData = [
-                // 1. New Cover
-                { type: 'cover', title: "Leçon 1 : Prédicat, Infinitif et radical", text: "Dans ce cours, nous allons apprendre quelques concepts grammaticaux essentiels à la conjugaison avec des exemples." },
-                // 2. Definition
-                { type: 'definition', title: 'Prédicat (서술어)', text: "En coréen, le terme 'Prédicat' désigne l'ensemble des mots qui décrivent le mouvement, l'état ou la nature du sujet. Cela correspond aux verbes et adjectifs en français." },
-                // 3. Vocab
+                { type: 'cover', title: "Leçon 1 : Prédicat, Infinitif et radical", text: "Dans ce cours, nous allons apprendre quelques concepts grammaticaux essentiels à la conjugaison." },
+                { type: 'definition', title: 'Prédicat (서술어)', text: "En coréen, le terme 'Prédicat' désigne l'ensemble des mots qui décrivent le mouvement, l'état ou la nature du sujet." },
                 { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_d1859f2594f143d8b898a61786cb0f7a~mv2.png', fr: 'Aller', kr: '가다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3' },
-                // 4. Vocab
                 { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_be8ea416444c4ebf88880a4a12471105~mv2.png', fr: 'Manger', kr: '먹다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_430b147143644a538566e98178eaf1c3.mp3' },
-                // 5. Vocab
                 { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_7496676897084028aaaae7868fd88a69~mv2.png', fr: 'Être joli', kr: '예쁘다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_da09a3443b234b3d9416ba37ede44cd8.mp3' },
-                // 6. Vocab
                 { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_2f0ad83afd32405087fa14ff42603899~mv2.png', fr: 'Faire froid', kr: '춥다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_44ea5d2318e841c4af555e0cfab3dcef.mp3' },
-                // 7. Definition
                 { type: 'definition', title: 'Infinitif (원형)', text: "L'infinitif désigne l'état non conjugué du prédicat. Tous les prédicats à l'infinitif en coréen se terminent par '-다'." },
-                // 8. Vocab
                 { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_e1f86611da5c4b448b5d5c0e0c55b1c7~mv2.png', fr: 'Dormir', kr: '자다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3' },
-                // 9. Vocab - CHANGED
-                // MODIFIED: Corrected 'https"' to 'https://'
                 { type: 'vocab', image: 'https://static.wixstatic.com/media/699687_13e71f8db795459bac1b742834eac4ba~mv2.png', fr: 'Chercher', kr: '찾다', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_51aec296c1074a16857f0ed95541bbf3.mp3' },
-                // 10. Definition
-                { type: 'definition', title: 'Radical (어근)', text: "Le radical est la partie du prédicat qui ne change pas lors de la conjugaison. C'est la partie qui reste après avoir retiré la terminaison '-다'." },
-                // 11. Radical Split
+                { type: 'definition', title: 'Radical (어근)', text: "Le radical est la partie du prédicat qui ne change pas lors de la conjugaison. (Tout sauf '-다')" },
                 { type: 'radical_split', infinitive: '가다', fr_infinitive: 'Aller', radical: '가', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_d1859f2594f143d8b898a61786cb0f7a~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3' },
-                // 12. Radical Split
                 { type: 'radical_split', infinitive: '먹다', fr_infinitive: 'Manger', radical: '먹', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_be8ea416444c4ebf88880a4a12471105~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_430b147143644a538566e98178eaf1c3.mp3' },
-                // 13. Radical Split
                 { type: 'radical_split', infinitive: '예쁘다', fr_infinitive: 'Être joli', radical: '예쁘', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_7496676897084028aaaae7868fd88a69~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_da09a3443b234b3d9416ba37ede44cd8.mp3' },
-                // 14. Radical Split
                 { type: 'radical_split', infinitive: '춥다', fr_infinitive: 'Faire froid', radical: '춥', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_2f0ad83afd32405087fa14ff42603899~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_44ea5d2318e841c4af555e0cfab3dcef.mp3' },
-                // 15. Radical Split
                 { type: 'radical_split', infinitive: '자다', fr_infinitive: 'Dormir', radical: '자', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_e1f86611da5c4b448b5d5c0e0c55b1c7~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3' },
-                // 16. Radical Split - CHANGED
                 { type: 'radical_split', infinitive: '찾다', fr_infinitive: 'Chercher', radical: '찾', terminaison: '다', image: 'https://static.wixstatic.com/media/699687_13e71f8db795459bac1b742834eac4ba~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_51aec296c1074a16857f0ed95541bbf3.mp3' },
-                // 17. Completion
                 { type: 'completion', text: "Félicitations ! Pratiquez et mémorisez les prédicats dans la Leçon 2." }
             ];
 
@@ -347,46 +304,53 @@
                 switch (pageData.type) {
                     case 'cover':
                         contentHTML = `
-                            <h1 class="title-text mb-6">${pageData.title}</h1>
-                            <h2 class="body-text" style="font-size: clamp(1.2rem, 3vw, 1.8rem); max-width: 70%;">${pageData.text}</h2>
+                            <h1 class="title-text">${pageData.title}</h1>
+                            <p class="body-text">${pageData.text}</p>
                         `;
                         break;
                     case 'definition':
                         contentHTML = `
-                            <h2 class="title-text mb-4">${pageData.title}</h2>
+                            <h2 class="title-text">${pageData.title}</h2>
                             <p class="body-text">${pageData.text}</p>
                         `;
                         break;
                     case 'vocab':
+                        // 모바일에서는 카드가 세로로 배치될 수 있도록 스타일 조정됨 (CSS)
                         contentHTML = `
                             <div class="vocab-card-container">
-                                <div class="vocab-card image-card fr-card" style="background-image: url('${pageData.image}')" data-text="${pageData.fr}" title="Cliquez pour écouter"></div>
-                                <div class="vocab-card kr-card" data-audio="${pageData.kr_audio_src}" title="클릭해서 듣기">${pageData.kr}</div>
+                                <div class="vocab-card image-card fr-card" style="background-image: url('${pageData.image}')" data-text="${pageData.fr}">
+                                    <!-- 텍스트를 이미지 위에 표시하고 싶다면 여기에 추가 -->
+                                    <span class="lg:hidden text-white drop-shadow-md" style="text-shadow:0 0 4px black;">${pageData.fr}</span>
+                                </div>
+                                <div class="vocab-card kr-card" data-audio="${pageData.kr_audio_src}">
+                                    ${pageData.kr}
+                                </div>
                             </div>
                         `;
                         break;
                     case 'radical_split':
                         contentHTML = `
-                            <div class="radical-card image-card" style="background-image: url('${pageData.image}')" data-audio="${pageData.kr_audio_src}" title="클릭해서 듣기">
-                            </div>
-                            <div class="footnote mb-8">(Définition: ${pageData.fr_infinitive.toLowerCase()})</div>
-                            <div class="text-5xl md:text-6xl lg:text-7xl font-bold flex items-end justify-center gap-4">
-                                <div class="text-center">
-                                    <span class="radical">${pageData.radical}</span>
-                                    <div class="footnote mt-2">(Radical)</div>
-                                </div>
-                                <span class="pb-4 mx-2">+</span>
-                                <div class="text-center">
-                                    <span class="terminaison">${pageData.terminaison}</span>
-                                    <div class="footnote mt-2">(Terminaison)</div>
+                            <div class="radical-split-container">
+                                <div class="radical-card image-card" style="background-image: url('${pageData.image}')" data-audio="${pageData.kr_audio_src}"></div>
+                                <div class="footnote mb-4">(${pageData.fr_infinitive})</div>
+                                <div class="radical-text-area">
+                                    <div class="text-center">
+                                        <span class="radical">${pageData.radical}</span>
+                                        <div class="footnote">Radical</div>
+                                    </div>
+                                    <span class="pb-2 text-gray-400">+</span>
+                                    <div class="text-center">
+                                        <span class="terminaison">${pageData.terminaison}</span>
+                                        <div class="footnote">Fin</div>
+                                    </div>
                                 </div>
                             </div>
                         `;
                         break;
                     case 'completion':
                         contentHTML = `
-                            <h1 class="text-4xl md:text-5xl font-bold text-sky-500 mb-4">🎉</h1>
-                            <p class="body-text">${pageData.text}</p>
+                            <div class="text-6xl mb-4">🎉</div>
+                            <p class="body-text font-bold">${pageData.text}</p>
                         `;
                         break;
                 }
@@ -400,55 +364,31 @@
                 
                 setTimeout(() => slideEl.classList.add('active'), 10);
 
-                // Add event listeners for new interactive elements
+                // Events
                 const frCard = slideWrapper.querySelector('.fr-card');
-                if(frCard) {
-                    frCard.addEventListener('click', () => {
-                        Tone.start();
-                        // The speak function will now automatically use the French voice
-                        speak(frCard.dataset.text, 'fr-FR');
-                    });
-                }
-                const krCard = slideWrapper.querySelector('.kr-card');
-                if(krCard) {
-                    krCard.addEventListener('click', () => {
-                         const audioSrc = krCard.dataset.audio;
-                         if(audioSrc && !audioSrc.startsWith('placeholder') && audioSrc.startsWith('https')) { // Added check for valid URL
-                             const audio = new Audio(audioSrc);
-                             audio.play().catch(e => console.error("Audio playback error:", e));
-                         } else if (audioSrc && !audioSrc.startsWith('https')) {
-                             console.error("Invalid audio URL:", audioSrc); // Log invalid URL
-                         } else {
-                             Tone.start();
-                             sounds.koreanWord.triggerAttackRelease('A4', '8n');
-                         }
-                    });
-                }
+                if(frCard) frCard.addEventListener('click', () => { Tone.start(); speak(frCard.dataset.text, 'fr-FR'); });
 
-                // Listener for the new image card on radical pages
-                const radicalCard = slideWrapper.querySelector('.radical-card.image-card');
-                if (radicalCard) {
-                     radicalCard.addEventListener('click', () => {
-                         const audioSrc = radicalCard.dataset.audio;
-                         if (audioSrc && !audioSrc.startsWith('placeholder') && audioSrc.startsWith('https')) { // Added check for valid URL
-                             const audio = new Audio(audioSrc);
-                             audio.play().catch(e => console.error("Audio playback error:", e));
-                         } else if (audioSrc && !audioSrc.startsWith('https')) {
-                             console.error("Invalid audio URL:", audioSrc); // Log invalid URL
-                         } else {
-                             Tone.start();
-                             sounds.koreanWord.triggerAttackRelease('A4', '8n');
-                         }
-                     });
-                }
+                const krCard = slideWrapper.querySelector('.kr-card');
+                if(krCard) krCard.addEventListener('click', () => playAudio(krCard.dataset.audio));
+
+                const radicalCard = slideWrapper.querySelector('.radical-card');
+                if(radicalCard) radicalCard.addEventListener('click', () => playAudio(radicalCard.dataset.audio));
 
                 updateNav();
+            };
+
+            const playAudio = (src) => {
+                if(src && src.startsWith('https')) {
+                    new Audio(src).play().catch(e => console.error(e));
+                } else {
+                    Tone.start();
+                    sounds.koreanWord.triggerAttackRelease('A4', '8n');
+                }
             };
             
             const updateNav = () => {
                 prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
-                nextBtn.disabled = currentPage === courseData.length - 1;
-                
+                nextBtn.innerText = currentPage === courseData.length - 1 ? 'Terminer' : 'Suivant';
                 const progress = ((currentPage + 1) / courseData.length) * 100;
                 progressBar.style.width = `${progress}%`;
             };
@@ -458,15 +398,11 @@
                     currentPage++;
                     renderPage();
                     Tone.start();
-                    if (currentPage === courseData.length - 1) {
-                        sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5", Tone.now());
-                        // MODIFIED (Request 2): Send postMessage on last page
-                        if (window.parent) {
-                            window.parent.postMessage('lessonCompleted', '*');
-                        }
-                    } else {
-                        sounds.nextPage.triggerAttackRelease('C5', '8n');
-                    }
+                    sounds.nextPage.triggerAttackRelease('C5', '16n');
+                } else {
+                    Tone.start();
+                    sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
+                    if (window.parent) window.parent.postMessage('lessonCompleted', '*');
                 }
             };
             
