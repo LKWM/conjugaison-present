@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leçon 3: Les prédicats de base (2)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 1rem;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #course-container {
+            width: 100%;
+            max-width: 1000px;
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        #slide-wrapper {
+            aspect-ratio: 1000 / 600;
+            width: 100%;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 4%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out;
+            background-color: white;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-aspect-ratio: 9/10) {
+            #course-container { height: 95vh; width: auto; }
+            #slide-wrapper { aspect-ratio: 9 / 16; }
+            .slide { padding: 8%; }
+        }
+        
+        .title-text { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 700; color: #333; }
+        .body-text { font-size: clamp(1rem, 2.5vw, 1.5rem); color: #1a1a1a; line-height: 1.6; max-width: 80%; }
+        
+        .nav-button {
+            background-color: #38bdf8; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 9999px;
+            font-size: clamp(0.9rem, 2vw, 1.1rem); cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .nav-button:hover { background-color: #0ea5e9; transform: translateY(-2px); }
+        .nav-button:disabled { 
+            background-color: #a0aec0; 
+            cursor: not-allowed; 
+            transform: none; 
+            box-shadow: none; 
+            opacity: 0.7;
+        }
+        
+        .progress-bar-container { width: 100%; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; }
+        .progress-bar { height: 10px; width: 0%; background-color: #38bdf8; transition: width 0.5s ease; }
+
+        /* Vocab Card Styles */
+        .vocab-card-container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 5%;
+            width: 90%;
+            max-width: 650px;
+            flex-wrap: nowrap;
+        }
+
+        .vocab-card {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            width: 45%;
+            flex-shrink: 0;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .image-card {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .vocab-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        /* Speech Recognition Styles */
+        .speech-container { 
+            padding-top: clamp(1rem, 4vh, 2rem);
+            width: 100%; 
+        }
+        .mic-btn { 
+            background-color: #38bdf8;
+            color: white;
+            border: none; 
+            cursor: pointer; 
+            font-size: clamp(2.5rem, 6vw, 4rem); 
+            transition: all 0.2s ease-in-out; 
+            border-radius: 9999px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: clamp(4rem, 10vw, 5rem);
+            height: clamp(4rem, 10vw, 5rem);
+            margin: 0.5rem auto;
+        }
+        .mic-btn:hover {
+            background-color: #0ea5e9;
+        }
+        .mic-btn.recording { 
+            background-color: #ef4444;
+            transform: scale(1.1); 
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+        }
+        .mic-btn.loading {
+            background-color: #6b7280;
+            cursor: not-allowed;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        #speech-status { font-size: clamp(0.9rem, 2vw, 1.1rem); color: #64748b; height: 1.2em; line-height: 1.2em; }
+        .feedback-message { font-size: clamp(0.9rem, 2vw, 1.1rem); font-weight: 600; height: 2.2em; line-height: 1.1em; }
+        .attempts-text { font-size: clamp(0.75rem, 1.8vw, 0.9rem); color: #94a3b8; height: 1.2em; line-height: 1.2em; margin-top: 0.25rem;}
+
+        /* Multiple Choice Quiz Styles */
+        .quiz-option {
+            width: 80%; max-width: 400px; background-color: #f8fafc; border: 2px solid #e2e8f0;
+            border-radius: 0.75rem; padding: 1rem; margin: 0.5rem 0; font-size: clamp(1rem, 2.5vw, 1.3rem);
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .quiz-option:not(.disabled):hover { border-color: #38bdf8; transform: translateX(5px); }
+        .quiz-option.correct { background-color: #dcfce7; border-color: #22c55e; color: #166534; }
+        .quiz-option.incorrect { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .quiz-option.disabled { cursor: not-allowed; opacity: 0.7; }
+
+        /* Matching Game Styles */
+        .matching-game-container { display: flex; justify-content: space-around; width: 100%; max-width: 800px; gap: 1rem; }
+        .match-column { display: flex; flex-direction: column; gap: 0.75rem; width: 45%; }
+        .match-card {
+            background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 0.5rem; padding: clamp(0.5rem, 2vw, 1rem);
+            font-size: clamp(0.9rem, 2.2vw, 1.2rem); cursor: pointer; transition: all 0.2s ease;
+        }
+        .match-card:hover { border-color: #38bdf8; }
+        .match-card.selected { background-color: #e0f2fe; border-color: #38bdf8; transform: scale(1.05); }
+        .match-card.matched { background-color: #dcfce7; border-color: #22c55e; cursor: default; opacity: 0.6; }
+        .match-card.incorrect { background-color: #fee2e2; border-color: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <div id="course-container">
+        <div id="slide-wrapper"></div>
+        <div class="flex justify-between items-center p-4 bg-gray-50 border-t border-gray-200">
+             <button id="prev-btn" class="nav-button">Précédent</button>
+             <div class="w-1/3">
+                 <div class="progress-bar-container"><div id="progress-bar" class="progress-bar"></div></div>
+             </div>
+             <button id="next-btn" class="nav-button">Suivant</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slideWrapper = document.getElementById('slide-wrapper');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+
+            const BASE_44_ORIGIN = "https://coreeno.base44.app"; 
+            const CLOVA_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/naverClovaSpeech';
+
+            let sounds = {};
+            let soundsReady = false;
+            
+            const initAudioSynth = async () => {
+                if (soundsReady) return;
+                try {
+                    await Tone.start();
+                    sounds = {
+                        nextPage: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+                        correct: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
+                        incorrect: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.3 } }).toDestination(),
+                        completion: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination(),
+                        koreanWord: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination()
+                    };
+                    sounds.completion.volume.value = -6;
+                    soundsReady = true;
+                } catch(e) {
+                    console.error("Audio context start failed:", e);
+                }
+            };
+
+            const synth = window.speechSynthesis;
+            let frenchVoice = null; 
+
+            const speak = (text, lang = 'fr-FR') => {
+                if (synth.speaking) { synth.cancel(); }
+                setTimeout(() => {
+                    const utterThis = new SpeechSynthesisUtterance(text);
+                    utterThis.lang = lang;
+                    if (lang === 'fr-FR' && frenchVoice) {
+                        utterThis.voice = frenchVoice;
+                    }
+                    utterThis.pitch = 1;
+                    utterThis.rate = 0.9;
+                    synth.speak(utterThis);
+                }, 100);
+            };
+
+            function loadFrenchVoice() {
+                const voices = synth.getVoices();
+                frenchVoice = voices.find(voice => voice.lang === 'fr-FR');
+                if (!frenchVoice) {
+                    frenchVoice = voices.find(voice => voice.lang.startsWith('fr-'));
+                }
+            }
+
+            if (synth.onvoiceschanged !== undefined) {
+                synth.onvoiceschanged = loadFrenchVoice;
+            }
+            loadFrenchVoice();
+
+            // --- MediaRecorder (Naver API) Setup ---
+            let mediaRecorder;
+            let audioChunks = [];
+            let isRecording = false;
+            let recordingTimeout; 
+            let recognitionAttempts = {}; 
+
+            async function startRecording(pageData) {
+                if (isRecording) return;
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("Votre navigateur ne supporte pas l'enregistrement audio.");
+                    return;
+                }
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    isRecording = true;
+                    audioChunks = [];
+                    
+                    let mimeType = 'audio/webm;codecs=opus';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = 'audio/webm';
+                        if (!MediaRecorder.isTypeSupported(mimeType)) {
+                            mimeType = '';
+                        }
+                    }
+                    
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType }); 
+                    
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstart = () => {
+                        const micBtn = document.querySelector(`#mic-btn-${pageData.kr}`);
+                        if(micBtn) micBtn.classList.add('recording');
+                        const statusEl = document.querySelector(`#speech-status-${pageData.kr}`);
+                        if(statusEl) statusEl.textContent = "J'écoute...";
+
+                        clearTimeout(recordingTimeout);
+                        recordingTimeout = setTimeout(() => {
+                            if (isRecording) {
+                                stopRecording(pageData);
+                            }
+                        }, 10000); 
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        isRecording = false;
+                        clearTimeout(recordingTimeout);
+                        const micBtn = document.querySelector(`#mic-btn-${pageData.kr}`);
+                        if(micBtn) {
+                            micBtn.classList.remove('recording');
+                            micBtn.classList.add('loading');
+                        }
+                        const statusEl = document.querySelector(`#speech-status-${pageData.kr}`);
+                        if(statusEl) statusEl.textContent = "Évaluation en cours...";
+
+                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = () => {
+                            const base64Audio = reader.result;
+                            handlePronunciationEvaluation(pageData, base64Audio);
+                        };
+                        
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    
+                } catch (err) {
+                    console.error("Error starting recording:", err);
+                    isRecording = false; 
+                    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+                        alert("Impossible d'accéder au microphone. Veuillez autoriser l'accès.");
+                        const statusEl = document.querySelector(`#speech-status-${pageData.kr}`);
+                        if(statusEl) statusEl.textContent = "Microphone bloqué.";
+                    } else {
+                        alert(`Erreur microphone: ${err.name}. Veuillez réessayer.`);
+                    }
+                }
+            }
+
+            function stopRecording(pageData) {
+                clearTimeout(recordingTimeout);
+                if (mediaRecorder && isRecording) {
+                    mediaRecorder.stop();
+                }
+            }
+            
+            function normalizeText(text) {
+                if (typeof text !== 'string') return '';
+                return text.trim().replace(/[.,!?'\s]/g, '');
+            }
+
+            async function handlePronunciationEvaluation(pageData, audioBase64) {
+                const uniqueId = pageData.kr;
+                const referenceText = pageData.kr;
+
+                const page = slideWrapper.querySelector('.slide.active');
+                const scoreEl = page.querySelector(`#speech-score-${uniqueId}`);
+                const statusEl = page.querySelector(`#speech-status-${uniqueId}`);
+                const micBtn = page.querySelector(`#mic-btn-${uniqueId}`);
+                const attemptsEl = page.querySelector(`#speech-attempts-${uniqueId}`);
+
+                if (recognitionAttempts[uniqueId] === undefined) recognitionAttempts[uniqueId] = 0;
+                recognitionAttempts[uniqueId]++;
+                const isFirstAttempt = recognitionAttempts[uniqueId] === 1;
+
+                try {
+                    const response = await fetch(CLOVA_API_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ 
+                            audioBase64: audioBase64,
+                            languageCode: "Kor", 
+                            referenceText: referenceText
+                        })
+                    });
+            
+                    if (!response.ok) {
+                        let errorDetails = "Erreur inconnue";
+                        const errorText = await response.text(); 
+                        try {
+                            const errorResult = JSON.parse(errorText); 
+                            errorDetails = errorResult.error || JSON.stringify(errorResult);
+                        } catch (e) {
+                            errorDetails = errorText; 
+                        }
+                        throw new Error(`Erreur du backend (${response.status}): ${errorDetails}`);
+                    }
+                    
+                    const result = await response.json(); 
+                    
+                    const transcribedText = result.text || '';
+                    const score = (result.assessment ? result.assessment.pronunciation_score : 0) || 0;
+
+                    if (statusEl) statusEl.textContent = `"${transcribedText || '...'}"`;
+
+                    const normalizedTranscribed = normalizeText(transcribedText);
+                    const normalizedReference = normalizeText(referenceText);
+                    
+                    const isTextMatch = (normalizedTranscribed === normalizedReference);
+                    const isScorePass = score >= 80; 
+                    const isCorrect = isTextMatch && isScorePass; 
+
+                    if (isCorrect) {
+                        if(scoreEl) {
+                            scoreEl.textContent = `Très bien ! (Score: ${score.toFixed(0)}/100)`;
+                            scoreEl.className = 'feedback-message text-green-500';
+                        }
+                        if(micBtn) micBtn.disabled = true;
+                        nextBtn.disabled = false; 
+                        sounds.correct?.triggerAttackRelease('C5', '0.2s');
+                    } else {
+                        if (isFirstAttempt) {
+                            if(scoreEl) {
+                                scoreEl.textContent = `Réessayez. (Score: ${score.toFixed(0)}/100)`;
+                                scoreEl.className = 'feedback-message text-red-500';
+                            }
+                            if(attemptsEl) attemptsEl.textContent = "Tentatives restantes : 1";
+                            sounds.incorrect?.triggerAttackRelease('A#2', '0.2s');
+                            nextBtn.disabled = true; 
+                        } else {
+                            if(scoreEl) {
+                                scoreEl.textContent = `Échec. (Score: ${score.toFixed(0)}/100) Réponse: ${referenceText}`;
+                                scoreEl.className = 'feedback-message text-red-500';
+                            }
+                            if(attemptsEl) attemptsEl.textContent = "Tentatives restantes : 0";
+                            if(micBtn) micBtn.disabled = true;
+                            sounds.incorrect?.triggerAttackRelease('A#2', '0.2s');
+                            nextBtn.disabled = false; 
+                        }
+                    }
+
+                } catch (error) {
+                    console.error("Erreur lors de l'évaluation:", error); 
+                    if(scoreEl) {
+                        scoreEl.textContent = `Erreur de connexion. Veuillez réessayer.`;
+                        scoreEl.className = 'feedback-message text-red-500';
+                    }
+                    if (recognitionAttempts[uniqueId] > 0) recognitionAttempts[uniqueId]--; 
+                } finally {
+                    if(attemptsEl) attemptsEl.textContent = `Tentatives restantes : ${Math.max(0, 2 - (recognitionAttempts[uniqueId] || 0))}`;
+                    if(micBtn) micBtn.classList.remove('loading');
+                    updateNav(); 
+                }
+            }
+
+            // --- Course Content ---
+            const lecon2_vocab = [
+                { kr: '가다', fr: 'Aller', image: 'https://static.wixstatic.com/media/699687_d1859f2594f143d8b898a61786cb0f7a~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3' },
+                { kr: '먹다', fr: 'Manger', image: 'https://static.wixstatic.com/media/699687_be8ea416444c4ebf88880a4a12471105~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_430b147143644a538566e98178eaf1c3.mp3' },
+                { kr: '예쁘다', fr: 'Être joli', image: 'https://static.wixstatic.com/media/699687_7496676897084028aaaae7868fd88a69~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_da09a3443b234b3d9416ba37ede44cd8.mp3' },
+                { kr: '춥다', fr: 'Faire froid', image: 'https://static.wixstatic.com/media/699687_2f0ad83afd32405087fa14ff42603899~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_44ea5d2318e841c4af555e0cfab3dcef.mp3' }
+            ];
+            
+            const lecon3_vocab = [
+                { kr: '자다', fr: 'Dormir', image: 'https://static.wixstatic.com/media/699687_e1f86611da5c4b448b5d5c0e0c55b1c7~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3' },
+                { kr: '찾다', fr: 'Chercher', image: 'https://static.wixstatic.com/media/699687_13e71f8db795459bac1b742834eac4ba~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_51aec296c1074a16857f0ed95541bbf3.mp3' },
+                { kr: '켜다', fr: 'Allumer', image: 'https://static.wixstatic.com/media/699687_0310c1e11189477b8205f289ae864257~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_d9d2e17d0ed7412381095b7f38852d24.mp3' },
+                { kr: '씻다', fr: 'Se laver', image: 'https://static.wixstatic.com/media/699687_1a47943880cd47e9b870dc18f38d9eda~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_48e5bd34e068452e81e72fe53774c71d.mp3' }
+            ];
+
+            const courseData = [
+                { type: 'cover', title: 'Leçon 3 : Les prédicats de base (2)', text: "Apprenons quatre autres prédicats de base et révisons ce que nous avons appris." },
+                ...lecon3_vocab.map(v => ({ type: 'speech_practice', ...v })),
+                { type: 'multiple_choice', question: "Que signifie '자다' en français ?", options: [{ text: 'Dormir', isCorrect: true }, { text: 'Chercher', isCorrect: false }, { text: 'Se laver', isCorrect: false }] },
+                { type: 'multiple_choice', question: "Comment dit-on 'Chercher' en coréen ?", options: [{ text: '켜다', isCorrect: false }, { text: '찾다', isCorrect: true }, { text: '자다', isCorrect: false }] },
+                { type: 'multiple_choice', question: "Que signifie '씻다' en français ?", options: [{ text: 'Allumer', isCorrect: false }, { text: 'Dormir', isCorrect: false }, { text: 'Se laver', isCorrect: true }] },
+                { type: 'multiple_choice', question: "Comment dit-on 'Allumer' en coréen ?", options: [{ text: '켜다', isCorrect: true }, { text: '찾다', isCorrect: false }, { text: '씻다', isCorrect: false }] },
+                { type: 'multiple_choice', question: "Sélectionnez le mot coréen pour 'Aller'.", options: [{ text: '먹다', isCorrect: false }, { text: '가다', isCorrect: true }, { text: '춥다', isCorrect: false }] },
+                { type: 'multiple_choice', question: "Sélectionnez la traduction française de '예쁘다'.", options: [{ text: 'Manger', isCorrect: false }, { text: 'Faire froid', isCorrect: false }, { text: 'Être joli', isCorrect: true }] },
+                { type: 'multiple_choice', question: "Que signifie 'Manger' en coréen ?", options: [{ text: '먹다', isCorrect: true }, { text: '가다', isCorrect: false }, { text: '자다', isCorrect: false }] },
+                { type: 'multiple_choice', question: "Comment dit-on 'Faire froid' en coréen ?", options: [{ text: '예쁘다', isCorrect: false }, { text: '춥다', isCorrect: true }, { text: '씻다', isCorrect: false }] },
+                { type: 'matching_game', title: 'Associez les paires (1/2)', pairs: lecon2_vocab },
+                { type: 'matching_game', title: 'Associez les paires (2/2)', pairs: lecon3_vocab },
+                { type: 'completion', text: "Félicitations ! Vous avez terminé la Leçon 3. Continuez avec la Leçon 4 pour la prochaine étape." }
+            ];
+
+            let currentPage = 0;
+            const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
+
+            const renderPage = () => {
+                const pageData = courseData[currentPage];
+                let contentHTML = '';
+                const isInteractive = ['speech_practice', 'multiple_choice', 'matching_game'].includes(pageData.type);
+                
+                nextBtn.textContent = 'Suivant';
+                delete nextBtn.dataset.mode;
+                nextBtn.disabled = isInteractive;
+
+                switch (pageData.type) {
+                    case 'cover':
+                        contentHTML = `<h1 class="title-text mb-4">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`;
+                        break;
+                        
+                    case 'speech_practice':
+                        contentHTML = `
+                            <div class="flex flex-col justify-center items-center h-full w-full">
+                                <div class="flex-grow w-full flex justify-center items-center">
+                                    <div class="vocab-card-container">
+                                        <div class="vocab-card image-card fr-card" style="background-image: url('${pageData.image}')" data-text="${pageData.fr}" title="Cliquez pour écouter"></div>
+                                        <div class="vocab-card kr-card" data-audio="${pageData.kr_audio_src}" title="클릭해서 듣기">${pageData.kr}</div>
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0 w-full">
+                                    <div class="speech-container text-center">
+                                        <button id="mic-btn-${pageData.kr}" class="mic-btn" title="Cliquez et prononcez '${pageData.kr}'">
+                                            🎙️
+                                        </button>
+                                        <div id="speech-status-${pageData.kr}" class="text-base sm:text-xl text-slate-500 h-8">Cliquez sur le micro pour parler</div>
+                                        <div id="speech-score-${pageData.kr}" class="feedback-message text-base sm:text-xl h-8 sm:h-10"></div>
+                                        <div id="speech-attempts-${pageData.kr}" class="attempts-text">Tentatives restantes : 2</div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        break;
+
+                    case 'multiple_choice':
+                        const shuffledOptions = shuffleArray([...pageData.options]);
+                        contentHTML = `
+                            <h2 class="title-text mb-8">${pageData.question}</h2>
+                            <div class="flex flex-col items-center w-full">
+                                ${shuffledOptions.map((opt, i) => `<button class="quiz-option" data-correct="${opt.isCorrect}">${opt.text}</button>`).join('')}
+                            </div>`;
+                        break;
+
+                    case 'matching_game':
+                        const shuffledKr = shuffleArray([...pageData.pairs]);
+                        const shuffledFr = shuffleArray([...pageData.pairs]);
+                        contentHTML = `
+                            <h2 class="title-text mb-6">${pageData.title}</h2>
+                            <div class="matching-game-container">
+                                <div class="match-column">
+                                    ${shuffledKr.map((p) => `<div class="match-card" data-pair-id="${pageData.pairs.findIndex(item => item.kr === p.kr)}" data-lang="kr">${p.kr}</div>`).join('')}
+                                </div>
+                                <div class="match-column">
+                                    ${shuffledFr.map((p) => `<div class="match-card" data-pair-id="${pageData.pairs.findIndex(item => item.fr === p.fr)}" data-lang="fr">${p.fr}</div>`).join('')}
+                                </div>
+                            </div>`;
+                        break;
+                    
+                    case 'completion':
+                        contentHTML = `<h1 class="text-5xl font-bold text-sky-500 mb-4">🎉</h1><p class="body-text">${pageData.text}</p>`;
+                        break;
+                }
+
+                slideWrapper.innerHTML = `<div class="slide">${contentHTML}</div>`;
+                setTimeout(() => slideWrapper.querySelector('.slide').classList.add('active'), 10);
+                
+                attachEventListeners(pageData);
+                updateNav();
+            };
+
+            function attachEventListeners(pageData) {
+                if (pageData.type === 'speech_practice') {
+                    const micBtn = slideWrapper.querySelector(`#mic-btn-${pageData.kr}`);
+                    if (micBtn) {
+                        micBtn.addEventListener('click', () => {
+                            if (micBtn.disabled || micBtn.classList.contains('loading')) return;
+
+                            if (isRecording) {
+                                stopRecording(pageData);
+                            } else {
+                                initAudioSynth();
+                                startRecording(pageData);
+                            }
+                        });
+                    }
+                    
+                    const frCard = slideWrapper.querySelector('.fr-card');
+                    if(frCard) { frCard.addEventListener('click', () => { initAudioSynth(); speak(frCard.dataset.text, 'fr-FR'); }); }
+                    const krCard = slideWrapper.querySelector('.kr-card');
+                    if(krCard) {
+                        krCard.addEventListener('click', () => {
+                             initAudioSynth();
+                             const audioSrc = krCard.dataset.audio;
+                             if(audioSrc && !audioSrc.startsWith('placeholder')) {
+                                 const audio = new Audio(audioSrc);
+                                 audio.play().catch(e => console.error("Audio playback error:", e));
+                             } else {
+                                 sounds.koreanWord.triggerAttackRelease('A4', '8n');
+                             }
+                        });
+                    }
+
+                } else if (pageData.type === 'multiple_choice') {
+                    const options = slideWrapper.querySelectorAll('.quiz-option');
+                    options.forEach(opt => {
+                        opt.onclick = () => {
+                            initAudioSynth();
+                            options.forEach(o => o.classList.add('disabled'));
+                            if (opt.dataset.correct === 'true') {
+                                opt.classList.add('correct');
+                                nextBtn.disabled = false;
+                                sounds.correct?.triggerAttackRelease('E5', '8n');
+                            } else {
+                                opt.classList.add('incorrect');
+                                sounds.incorrect?.triggerAttackRelease('C3', '4n');
+                                nextBtn.textContent = 'Réessayer';
+                                nextBtn.dataset.mode = 'retry';
+                                nextBtn.disabled = false;
+                            }
+                        };
+                    });
+                } else if (pageData.type === 'matching_game') {
+                    let selected = null;
+                    let matchedCount = 0;
+                    const cards = slideWrapper.querySelectorAll('.match-card');
+                    cards.forEach(card => {
+                        card.onclick = () => {
+                            initAudioSynth();
+                            if (card.classList.contains('matched')) return;
+
+                            if (!selected) {
+                                if(card.classList.contains('selected')) {
+                                    card.classList.remove('selected');
+                                    selected = null;
+                                } else {
+                                    cards.forEach(c => c.classList.remove('selected'));
+                                    card.classList.add('selected');
+                                    selected = card;
+                                }
+                            } else {
+                                if (selected.dataset.lang !== card.dataset.lang && selected.dataset.pairId === card.dataset.pairId) {
+                                    selected.classList.add('matched');
+                                    card.classList.add('matched');
+                                    selected.classList.remove('selected');
+                                    selected = null;
+                                    matchedCount++;
+                                    sounds.correct?.triggerAttackRelease('E5', '8n');
+                                    if (matchedCount === pageData.pairs.length) {
+                                        nextBtn.disabled = false;
+                                    }
+                                } else {
+                                    selected.classList.add('incorrect');
+                                    card.classList.add('incorrect');
+                                    sounds.incorrect?.triggerAttackRelease('C3', '4n');
+                                    setTimeout(() => {
+                                        selected.classList.remove('incorrect', 'selected');
+                                        card.classList.remove('incorrect');
+                                        selected = null;
+                                    }, 800);
+                                }
+                            }
+                        };
+                    });
+                }
+            }
+            
+            const updateNav = () => {
+                prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
+                const progress = ((currentPage + 1) / courseData.length) * 100;
+                progressBar.style.width = `${progress}%`;
+
+                const pageData = courseData[currentPage];
+                const isInteractive = ['speech_practice', 'multiple_choice', 'matching_game'].includes(pageData.type);
+                
+                if (isInteractive) {
+                    if (nextBtn.disabled === false || nextBtn.dataset.mode === 'retry') {
+                        // Do nothing
+                    } else {
+                         nextBtn.disabled = true;
+                    }
+                } else {
+                    nextBtn.disabled = currentPage === courseData.length - 1;
+                }
+            };
+
+            const goToNextPage = () => {
+                if (isRecording) {
+                    stopRecording(courseData[currentPage]);
+                }
+
+                if (nextBtn.dataset.mode === 'retry') {
+                    const options = slideWrapper.querySelectorAll('.quiz-option');
+                    options.forEach(o => { o.classList.remove('disabled', 'incorrect'); });
+                    nextBtn.textContent = 'Suivant';
+                    delete nextBtn.dataset.mode;
+                    nextBtn.disabled = true;
+                    return;
+                }
+
+                if (currentPage < courseData.length - 1) {
+                    currentPage++;
+                    renderPage();
+                    sounds.nextPage?.triggerAttackRelease('C5', '8n');
+                }
+                
+                if (currentPage === courseData.length - 1) {
+                    sounds.completion?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5", Tone.now());
+                    
+                    if (window.parent) {
+                        window.parent.postMessage('lessonCompleted', '*');
+                    }
+                }
+            };
+            
+            const goToPrevPage = () => {
+                if (isRecording) {
+                    stopRecording(courseData[currentPage]);
+                }
+
+                if (currentPage > 0) {
+                    currentPage--;
+                    renderPage();
+                }
+            };
+
+            nextBtn.addEventListener('click', goToNextPage);
+            prevBtn.addEventListener('click', goToPrevPage);
+
+            renderPage();
+            
+            document.body.addEventListener('click', initAudioSynth, { once: true });
+            document.body.addEventListener('touchstart', initAudioSynth, { once: true });
+        });
+    </script>
+</body>
+</html>
