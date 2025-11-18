@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <style>
+        /* Google Fonts Inter */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         body {
@@ -45,7 +46,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            padding: 4%;
+            padding: 5%; /* Leçon 1 uses 5% */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -53,7 +54,7 @@
             text-align: center;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.5s ease-in-out;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
             background-color: white;
         }
 
@@ -63,39 +64,76 @@
         }
 
         @media (max-aspect-ratio: 9/10) {
-            #course-container { height: 95vh; width: auto; }
-            #slide-wrapper { aspect-ratio: 9 / 16; }
-            .slide { padding: 8%; }
+            #course-container {
+                height: 95vh;
+                width: auto;
+            }
+            #slide-wrapper {
+                aspect-ratio: 9 / 16;
+            }
+             .slide {
+                padding: 8%;
+            }
         }
         
-        .title-text { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 700; color: #333; }
-        .body-text { font-size: clamp(1rem, 2.5vw, 1.5rem); color: #1a1a1a; line-height: 1.6; max-width: 80%; }
-        
+        .title-text {
+             font-size: clamp(1.5rem, 4vw, 2.5rem); /* Leçon 1 style */
+             font-weight: 700;
+             color: #333;
+        }
+
+        .body-text {
+            font-size: clamp(1rem, 2.5vw, 1.5rem); /* Leçon 1 style */
+            color: #1a1a1a;
+            line-height: 1.6;
+            max-width: 80%;
+        }
+
         .nav-button {
-            background-color: #38bdf8; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 9999px;
-            font-size: clamp(0.9rem, 2vw, 1.1rem); cursor: pointer; transition: all 0.3s ease;
+            background-color: #38bdf8;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-size: clamp(0.9rem, 2vw, 1.1rem); /* Leçon 1 style */
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, visibility 0.3s ease;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
-        .nav-button:hover { background-color: #0ea5e9; transform: translateY(-2px); }
-        .nav-button:disabled { 
-            background-color: #a0aec0; 
-            cursor: not-allowed; 
-            transform: none; 
-            box-shadow: none; 
+
+        .nav-button:hover {
+            background-color: #0ea5e9;
+            transform: translateY(-2px);
+        }
+        
+        .nav-button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
             opacity: 0.7;
         }
         
-        .progress-bar-container { width: 100%; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; }
-        .progress-bar { height: 10px; width: 0%; background-color: #38bdf8; transition: width 0.5s ease; }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
 
-        /* Vocab Card Styles */
+        .progress-bar {
+            height: 10px;
+            width: 0%;
+            background-color: #38bdf8;
+            transition: width 0.5s ease;
+        }
+
+        /* Vocab Card Styles (Leçon 1 style) */
         .vocab-card-container {
             display: flex;
             justify-content: center;
             align-items: stretch;
             gap: 5%;
-            width: 90%;
-            max-width: 650px;
+            width: 100%;
             flex-wrap: nowrap;
         }
 
@@ -103,6 +141,7 @@
             background-color: #f8fafc;
             border: 2px solid #e2e8f0;
             border-radius: 1rem;
+            padding: 5%;
             width: 45%;
             flex-shrink: 0;
             aspect-ratio: 1 / 1;
@@ -114,11 +153,13 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
+        
         .image-card {
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
         }
+
         .vocab-card:hover {
             transform: scale(1.05);
             box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -166,7 +207,7 @@
         .feedback-message { font-size: clamp(0.9rem, 2vw, 1.1rem); font-weight: 600; height: 2.2em; line-height: 1.1em; }
         .attempts-text { font-size: clamp(0.75rem, 1.8vw, 0.9rem); color: #94a3b8; height: 1.2em; line-height: 1.2em; margin-top: 0.25rem;}
 
-        /* Multiple Choice Quiz Styles */
+        /* Quiz Styles */
         .quiz-option {
             width: 80%; max-width: 400px; background-color: #f8fafc; border: 2px solid #e2e8f0;
             border-radius: 0.75rem; padding: 1rem; margin: 0.5rem 0; font-size: clamp(1rem, 2.5vw, 1.3rem);
@@ -386,15 +427,7 @@
                     });
             
                     if (!response.ok) {
-                        let errorDetails = "Erreur inconnue";
-                        const errorText = await response.text(); 
-                        try {
-                            const errorResult = JSON.parse(errorText); 
-                            errorDetails = errorResult.error || JSON.stringify(errorResult);
-                        } catch (e) {
-                            errorDetails = errorText; 
-                        }
-                        throw new Error(`Erreur du backend (${response.status}): ${errorDetails}`);
+                        throw new Error(`Backend error`);
                     }
                     
                     const result = await response.json(); 
@@ -441,9 +474,9 @@
                     }
 
                 } catch (error) {
-                    console.error("Erreur lors de l'évaluation:", error); 
+                    console.error("Erreur:", error); 
                     if(scoreEl) {
-                        scoreEl.textContent = `Erreur de connexion. Veuillez réessayer.`;
+                        scoreEl.textContent = `Erreur de connexion.`;
                         scoreEl.className = 'feedback-message text-red-500';
                     }
                     if (recognitionAttempts[uniqueId] > 0) recognitionAttempts[uniqueId]--; 
@@ -499,7 +532,11 @@
 
                 switch (pageData.type) {
                     case 'cover':
-                        contentHTML = `<h1 class="title-text mb-4">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`;
+                        // [수정] Leçon 1 스타일과 동일하게 적용
+                        contentHTML = `
+                            <h1 class="title-text mb-6">${pageData.title}</h1>
+                            <h2 class="body-text" style="font-size: clamp(1.2rem, 3vw, 1.8rem); max-width: 70%;">${pageData.text}</h2>
+                        `;
                         break;
                         
                     case 'speech_practice':
