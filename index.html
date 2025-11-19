@@ -378,12 +378,12 @@
             const updateNav = () => {
                 prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
                 
-                // "찾다" 페이지 (마지막 학습 카드: length - 2)
+                // "찾다" 페이지 (마지막 학습 카드)
                 if (currentPage === courseData.length - 2) {
                     nextBtn.innerText = 'Terminer';
                     nextBtn.style.visibility = 'visible';
                 } 
-                // 완료 페이지 (length - 1)
+                // 완료 페이지
                 else if (currentPage === courseData.length - 1) {
                     nextBtn.style.visibility = 'hidden';
                     prevBtn.style.visibility = 'hidden';
@@ -399,17 +399,18 @@
 
             const goToNextPage = () => {
                 if (currentPage < courseData.length - 1) {
-                    // 마지막 학습 페이지("찾다")에서 버튼을 누르면 -> 완료 페이지로 가기 직전 postMessage 전송
-                    if (currentPage === courseData.length - 2) {
-                        if (window.parent) window.parent.postMessage('lessonCompleted', '*');
-                    }
-
                     currentPage++;
                     renderPage();
                     
                     Tone.start();
+                    
+                    // 완료 페이지에 도달했을 때 메시지 전송
                     if (currentPage === courseData.length - 1) {
                         sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
+                        
+                        // 메시지 전송 로직 수정
+                        window.parent.postMessage({ type: 'lesson_complete' }, '*');
+                        console.log('Lesson complete message sent to parent.');
                     } else {
                         sounds.nextPage.triggerAttackRelease('C5', '16n');
                     }
