@@ -117,6 +117,7 @@
             transition: background-color 0.2s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             white-space: nowrap;
+            min-width: 80px; /* 버튼 최소 너비 확보 */
         }
 
         .nav-button:hover { background-color: #0ea5e9; }
@@ -209,8 +210,6 @@
              font-weight: 400;
         }
 
-        /* 모바일 전용 레이아웃 변경 코드 제거됨 -> 모든 해상도에서 위 스타일 유지 */
-        /* 단, 아주 작은 화면에서 패딩만 약간 조절 */
         @media (max-width: 480px) {
              body { padding: 0; }
              #course-container { border-radius: 0; }
@@ -378,21 +377,42 @@
             
             const updateNav = () => {
                 prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
-                nextBtn.innerText = currentPage === courseData.length - 1 ? 'Terminer' : 'Suivant';
+                
+                // "찾다" 페이지 (마지막 학습 카드: length - 2)
+                if (currentPage === courseData.length - 2) {
+                    nextBtn.innerText = 'Terminer';
+                    nextBtn.style.visibility = 'visible';
+                } 
+                // 완료 페이지 (length - 1)
+                else if (currentPage === courseData.length - 1) {
+                    nextBtn.style.visibility = 'hidden';
+                    prevBtn.style.visibility = 'hidden';
+                } 
+                else {
+                    nextBtn.innerText = 'Suivant';
+                    nextBtn.style.visibility = 'visible';
+                }
+                
                 const progress = ((currentPage + 1) / courseData.length) * 100;
                 progressBar.style.width = `${progress}%`;
             };
 
             const goToNextPage = () => {
                 if (currentPage < courseData.length - 1) {
+                    // 마지막 학습 페이지("찾다")에서 버튼을 누르면 -> 완료 페이지로 가기 직전 postMessage 전송
+                    if (currentPage === courseData.length - 2) {
+                        if (window.parent) window.parent.postMessage('lessonCompleted', '*');
+                    }
+
                     currentPage++;
                     renderPage();
+                    
                     Tone.start();
-                    sounds.nextPage.triggerAttackRelease('C5', '16n');
-                } else {
-                    Tone.start();
-                    sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
-                    if (window.parent) window.parent.postMessage('lessonCompleted', '*');
+                    if (currentPage === courseData.length - 1) {
+                        sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
+                    } else {
+                        sounds.nextPage.triggerAttackRelease('C5', '16n');
+                    }
                 }
             };
             
