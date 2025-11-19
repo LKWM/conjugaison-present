@@ -2,43 +2,52 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Leçon 2: Apprentissage et Mémorisation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+        /* --- 기본 레이아웃 설정 (index.html과 동일) --- */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f4f8;
+            height: 100vh;
+            width: 100vw;
+            padding: 0.5rem;
+            margin: 0;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* MODIFIED (Request 1): Changed min-height to height for mobile viewport stability */
-            height: 100vh;
-            padding: 1rem;
-            margin: 0;
-            overflow: hidden;
         }
 
         #course-container {
             width: 100%;
             max-width: 1000px;
+            height: 100%; 
+            max-height: 100%;
             background-color: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            /* MODIFIED (Request 1): Added flex-shrink to prevent shrinking in body */
-            flex-shrink: 0;
+            position: relative;
         }
 
         #slide-wrapper {
-            aspect-ratio: 1000 / 600;
             width: 100%;
+            flex: 1; /* 남은 공간 채움 */
             position: relative;
+            overflow: hidden;
+            min-height: 0;
         }
 
         .slide {
@@ -47,7 +56,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            padding: 4%;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -55,7 +64,7 @@
             text-align: center;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.5s ease-in-out;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
             background-color: white;
         }
 
@@ -64,144 +73,212 @@
             visibility: visible;
         }
 
-        @media (max-aspect-ratio: 9/10) {
-            #course-container { height: 95vh; width: auto; }
-            #slide-wrapper { aspect-ratio: 9 / 16; }
-            .slide { padding: 8%; }
+        /* 텍스트 스타일 */
+        .title-text {
+            font-size: clamp(1.2rem, 4vh, 2rem);
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.2;
         }
-        
-        .title-text { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 700; color: #333; }
-        .body-text { font-size: clamp(1rem, 2.5vw, 1.5rem); color: #1a1a1a; line-height: 1.6; max-width: 80%; }
-        
+
+        .body-text {
+            font-size: clamp(0.9rem, 2.5vh, 1.2rem);
+            color: #1a1a1a;
+            line-height: 1.5;
+            max-width: 90%;
+        }
+
+        /* 네비게이션 바 */
+        .nav-container {
+            padding: 0.5rem 1rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 60px;
+        }
+
         .nav-button {
-            background-color: #38bdf8; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 9999px;
-            font-size: clamp(0.9rem, 2vw, 1.1rem); cursor: pointer; transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            background-color: #38bdf8;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            min-width: 80px;
         }
-        .nav-button:hover { background-color: #0ea5e9; transform: translateY(-2px); }
-        /* MODIFIED (Request 3): Updated disabled style */
+        .nav-button:hover { background-color: #0ea5e9; }
         .nav-button:disabled { 
-            background-color: #a0aec0; 
+            background-color: #cbd5e1; 
             cursor: not-allowed; 
-            transform: none; 
             box-shadow: none; 
             opacity: 0.7;
         }
-        
-        .progress-bar-container { width: 100%; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; }
-        .progress-bar { height: 10px; width: 0%; background-color: #38bdf8; transition: width 0.5s ease; }
 
-        /* Vocab Card Styles - EDITED */
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.3s ease; }
+
+        /* --- 카드 스타일 (index.html과 동일한 비율 유지) --- */
         .vocab-card-container {
             display: flex;
             justify-content: center;
-            align-items: stretch;
-            gap: 5%;
-            width: 90%;
-            max-width: 650px; /* Increased max width */
+            align-items: center;
+            gap: 4%;
+            width: 100%;
+            height: auto; /* 높이 유동적 */
             flex-wrap: nowrap;
+            padding: 1rem 0;
         }
 
         .vocab-card {
             background-color: #f8fafc;
             border: 2px solid #e2e8f0;
-            border-radius: 1rem;
-            width: 45%;
-            flex-shrink: 0;
+            border-radius: 0.75rem;
+            width: 42%; 
+            max-width: 250px;
             aspect-ratio: 1 / 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: clamp(1.2rem, 3vw, 2rem);
+            font-size: clamp(1rem, 4vmin, 1.8rem);
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
+            flex-shrink: 0;
         }
+        .vocab-card:hover { transform: scale(1.02); }
         .image-card {
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
         }
-        .vocab-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        }
 
-        /* MODIFIED (Request 3): Speech Recognition Styles (from clova_example.html) */
+        /* --- 발음 연습 (Speech Practice) 스타일 --- */
         .speech-container { 
-            padding-top: clamp(1rem, 4vh, 2rem);
-            width: 100%; 
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
         }
+        
         .mic-btn { 
             background-color: #38bdf8;
             color: white;
             border: none; 
             cursor: pointer; 
-            font-size: clamp(2.5rem, 6vw, 4rem); 
+            font-size: clamp(2rem, 5vh, 3rem); 
             transition: all 0.2s ease-in-out; 
-            border-radius: 9999px;
+            border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            width: clamp(4rem, 10vw, 5rem); /* 64px - 80px */
-            height: clamp(4rem, 10vw, 5rem);
-            margin: 0.5rem auto; /* my-2 sm:my-4 */
+            width: clamp(3.5rem, 8vh, 4.5rem);
+            height: clamp(3.5rem, 8vh, 4.5rem);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .mic-btn:hover {
-            background-color: #0ea5e9;
-        }
+        .mic-btn:hover { background-color: #0ea5e9; }
         .mic-btn.recording { 
-            background-color: #ef4444; /* red-500 */
+            background-color: #ef4444; 
             transform: scale(1.1); 
             box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
         }
         .mic-btn.loading {
-            background-color: #6b7280; /* gray-500 */
+            background-color: #6b7280;
             cursor: not-allowed;
             animation: pulse 1.5s infinite ease-in-out;
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
-        #speech-status { font-size: clamp(0.9rem, 2vw, 1.1rem); color: #64748b; height: 1.2em; line-height: 1.2em; }
-        .feedback-message { font-size: clamp(0.9rem, 2vw, 1.1rem); font-weight: 600; height: 2.2em; line-height: 1.1em; }
-        .attempts-text { font-size: clamp(0.75rem, 1.8vw, 0.9rem); color: #94a3b8; height: 1.2em; line-height: 1.2em; margin-top: 0.25rem;}
+        #speech-status { font-size: 0.9rem; color: #64748b; height: 1.5rem; line-height: 1.5rem; }
+        .feedback-message { font-size: 1rem; font-weight: 600; height: 2rem; line-height: 2rem; }
+        .attempts-text { font-size: 0.8rem; color: #94a3b8; }
 
-
-        /* Multiple Choice Quiz Styles */
+        /* --- 퀴즈 (Multiple Choice) 스타일 --- */
         .quiz-option {
-            width: 80%; max-width: 400px; background-color: #f8fafc; border: 2px solid #e2e8f0;
-            border-radius: 0.75rem; padding: 1rem; margin: 0.5rem 0; font-size: clamp(1rem, 2.5vw, 1.3rem);
-            cursor: pointer; transition: all 0.2s ease;
+            width: 90%; 
+            max-width: 400px; 
+            background-color: #f8fafc; 
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem; 
+            padding: 0.8rem; 
+            margin: 0.4rem 0; 
+            font-size: clamp(0.9rem, 2.5vh, 1.2rem);
+            cursor: pointer; 
+            transition: all 0.2s ease;
         }
-        .quiz-option:not(.disabled):hover { border-color: #38bdf8; transform: translateX(5px); }
+        .quiz-option:not(.disabled):hover { border-color: #38bdf8; }
         .quiz-option.correct { background-color: #dcfce7; border-color: #22c55e; color: #166534; }
         .quiz-option.incorrect { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
         .quiz-option.disabled { cursor: not-allowed; opacity: 0.7; }
 
-        /* Matching Game Styles */
-        .matching-game-container { display: flex; justify-content: space-around; width: 100%; gap: 1rem; }
-        .match-column { display: flex; flex-direction: column; gap: 0.75rem; width: 45%; }
-        .match-card {
-            background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 0.5rem; padding: clamp(0.5rem, 2vw, 1rem);
-            font-size: clamp(0.9rem, 2.2vw, 1.2rem); cursor: pointer; transition: all 0.2s ease;
+        /* --- 짝맞추기 (Matching Game) 스타일 --- */
+        .matching-game-container { 
+            display: flex; 
+            justify-content: space-between; 
+            width: 100%; 
+            max-width: 500px;
+            gap: 1rem; 
+            height: 65%; /* 높이 제한 */
         }
-        .match-card:hover { border-color: #38bdf8; }
-        .match-card.selected { background-color: #e0f2fe; border-color: #38bdf8; transform: scale(1.05); }
+        .match-column { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+            gap: 0.5rem; 
+            width: 48%; 
+            height: 100%;
+        }
+        .match-card {
+            background-color: #f8fafc; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 0.5rem; 
+            padding: 0; /* 패딩 제거 후 flex로 중앙 정렬 */
+            height: 100%; /* 균등 분배 */
+            max-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(0.8rem, 2vh, 1rem); 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .match-card.selected { background-color: #e0f2fe; border-color: #38bdf8; transform: scale(1.02); }
         .match-card.matched { background-color: #dcfce7; border-color: #22c55e; cursor: default; opacity: 0.6; }
         .match-card.incorrect { background-color: #fee2e2; border-color: #ef4444; }
+
+        @media (max-width: 480px) {
+             body { padding: 0; }
+             #course-container { border-radius: 0; }
+        }
     </style>
 </head>
 <body>
 
     <div id="course-container">
         <div id="slide-wrapper"></div>
-        <div class="flex justify-between items-center p-4 bg-gray-50 border-t border-gray-200">
+        
+        <div class="nav-container">
              <button id="prev-btn" class="nav-button">Précédent</button>
-             <div class="w-1/3">
-                 <div class="progress-bar-container"><div id="progress-bar" class="progress-bar"></div></div>
+             <div class="w-1/3 mx-2">
+                 <div class="progress-bar-container">
+                      <div id="progress-bar" class="progress-bar"></div>
+                 </div>
              </div>
              <button id="next-btn" class="nav-button">Suivant</button>
         </div>
@@ -214,7 +291,7 @@
             const nextBtn = document.getElementById('next-btn');
             const progressBar = document.getElementById('progress-bar');
 
-            // --- MODIFIED (Request 3): API Setup from clova_example.html ---
+            // --- API Setup ---
             const BASE_44_ORIGIN = "https://coreeno.base44.app"; 
             const CLOVA_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/naverClovaSpeech';
 
@@ -235,26 +312,21 @@
                     };
                     sounds.completion.volume.value = -6;
                     soundsReady = true;
-                    console.log('Audio context started.');
                 } catch(e) {
-                    console.error("Audio context could not be started: ", e);
+                    console.error("Audio context error", e);
                 }
             };
 
-            // --- Text-to-Speech Setup (TTS FIX APPLIED) ---
+            // --- TTS Setup ---
             const synth = window.speechSynthesis;
             let frenchVoice = null; 
 
             const speak = (text, lang = 'fr-FR') => {
-                if (synth.speaking) {
-                    synth.cancel();
-                }
+                if (synth.speaking) synth.cancel();
                 setTimeout(() => {
                     const utterThis = new SpeechSynthesisUtterance(text);
                     utterThis.lang = lang;
-                    if (lang === 'fr-FR' && frenchVoice) {
-                        utterThis.voice = frenchVoice;
-                    }
+                    if (lang === 'fr-FR' && frenchVoice) utterThis.voice = frenchVoice;
                     utterThis.pitch = 1;
                     utterThis.rate = 0.9;
                     synth.speak(utterThis);
@@ -263,33 +335,22 @@
 
             function loadFrenchVoice() {
                 const voices = synth.getVoices();
-                frenchVoice = voices.find(voice => voice.lang === 'fr-FR');
-                if (!frenchVoice) {
-                    frenchVoice = voices.find(voice => voice.lang.startsWith('fr-'));
-                }
-                if (frenchVoice) {
-                    console.log("French voice loaded:", frenchVoice.name);
-                } else {
-                    console.warn("No French voice found. TTS might use browser default.");
-                }
+                frenchVoice = voices.find(voice => voice.lang === 'fr-FR') || voices.find(voice => voice.lang.startsWith('fr-'));
             }
+            if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadFrenchVoice;
+            loadFrenchVoice();
 
-            if (synth.onvoiceschanged !== undefined) {
-                synth.onvoiceschanged = loadFrenchVoice;
-            }
-            loadFrenchVoice(); // Initial call
-
-            // --- MODIFIED (Request 3): MediaRecorder (Naver API) Setup ---
+            // --- Recording Setup ---
             let mediaRecorder;
             let audioChunks = [];
             let isRecording = false;
-            let recordingTimeout; // 10초 타임아웃
-            let recognitionAttempts = {}; // Track attempts per quiz
+            let recordingTimeout;
+            let recognitionAttempts = {};
 
             async function startRecording(pageData) {
                 if (isRecording) return;
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    alert("Votre navigateur ne supporte pas l'enregistrement audio.");
+                    alert("Microphone non supporté.");
                     return;
                 }
 
@@ -299,32 +360,23 @@
                     audioChunks = [];
                     
                     let mimeType = 'audio/webm;codecs=opus';
-                    if (!MediaRecorder.isTypeSupported(mimeType)) {
-                        mimeType = 'audio/webm';
-                        if (!MediaRecorder.isTypeSupported(mimeType)) {
-                            mimeType = '';
-                        }
-                    }
+                    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = '';
                     
                     mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType }); 
                     
-                    mediaRecorder.ondataavailable = event => {
-                        audioChunks.push(event.data);
-                    };
+                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
 
                     mediaRecorder.onstart = () => {
                         const micBtn = document.querySelector(`#mic-btn-${pageData.kr}`);
                         if(micBtn) micBtn.classList.add('recording');
                         const statusEl = document.querySelector(`#speech-status-${pageData.kr}`);
                         if(statusEl) statusEl.textContent = "J'écoute...";
-
+                        
                         clearTimeout(recordingTimeout);
-                        // MODIFIED (Request 3): 10 second timeout
                         recordingTimeout = setTimeout(() => {
-                            if (isRecording) {
-                                stopRecording(pageData);
-                            }
-                        }, 10000); // 10 seconds
+                            if (isRecording) stopRecording(pageData);
+                        }, 10000);
                     };
 
                     mediaRecorder.onstop = () => {
@@ -336,39 +388,27 @@
                             micBtn.classList.add('loading');
                         }
                         const statusEl = document.querySelector(`#speech-status-${pageData.kr}`);
-                        if(statusEl) statusEl.textContent = "Évaluation en cours...";
+                        if(statusEl) statusEl.textContent = "Évaluation...";
 
                         const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
                         const reader = new FileReader();
                         reader.readAsDataURL(audioBlob);
                         reader.onloadend = () => {
-                            const base64Audio = reader.result;
-                            handlePronunciationEvaluation(pageData, base64Audio);
+                            handlePronunciationEvaluation(pageData, reader.result);
                         };
-                        
                         stream.getTracks().forEach(track => track.stop());
                     };
-
                     mediaRecorder.start();
-                    
                 } catch (err) {
-                    console.error("Error starting recording:", err);
-                    isRecording = false; // Ensure state is reset
-                    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-                        alert("Impossible d'accéder au microphone. Veuillez autoriser l'accès.");
-                        const statusEl = document.querySelector(`#speech-status-${pageData.kr}`);
-                        if(statusEl) statusEl.textContent = "Microphone bloqué.";
-                    } else {
-                        alert(`Erreur microphone: ${err.name}. Veuillez réessayer.`);
-                    }
+                    console.error("Mic Error:", err);
+                    isRecording = false;
+                    alert("Erreur microphone. Vérifiez les permissions.");
                 }
             }
 
             function stopRecording(pageData) {
                 clearTimeout(recordingTimeout);
-                if (mediaRecorder && isRecording) {
-                    mediaRecorder.stop();
-                }
+                if (mediaRecorder && isRecording) mediaRecorder.stop();
             }
             
             function normalizeText(text) {
@@ -376,11 +416,9 @@
                 return text.trim().replace(/[.,!?'\s]/g, '');
             }
 
-            // MODIFIED (Request 3): New Evaluation Function
             async function handlePronunciationEvaluation(pageData, audioBase64) {
                 const uniqueId = pageData.kr;
                 const referenceText = pageData.kr;
-
                 const page = slideWrapper.querySelector('.slide.active');
                 const scoreEl = page.querySelector(`#speech-score-${uniqueId}`);
                 const statusEl = page.querySelector(`#speech-status-${uniqueId}`);
@@ -395,89 +433,65 @@
                     const response = await fetch(CLOVA_API_FUNCTION_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify({ 
-                            audioBase64: audioBase64,
-                            languageCode: "Kor", 
-                            referenceText: referenceText
-                        })
+                        body: JSON.stringify({ audioBase64: audioBase64, languageCode: "Kor", referenceText: referenceText })
                     });
             
-                    if (!response.ok) {
-                        let errorDetails = "Erreur inconnue";
-                        const errorText = await response.text(); 
-                        try {
-                            const errorResult = JSON.parse(errorText); 
-                            errorDetails = errorResult.error || JSON.stringify(errorResult);
-                        } catch (e) {
-                            errorDetails = errorText; 
-                        }
-                        throw new Error(`Erreur du backend (${response.status}): ${errorDetails}`);
-                    }
+                    if (!response.ok) throw new Error("API Error");
                     
                     const result = await response.json(); 
-                    
                     const transcribedText = result.text || '';
                     const score = (result.assessment ? result.assessment.pronunciation_score : 0) || 0;
 
                     if (statusEl) statusEl.textContent = `"${transcribedText || '...'}"`;
 
-                    const normalizedTranscribed = normalizeText(transcribedText);
-                    const normalizedReference = normalizeText(referenceText);
-                    
-                    const isTextMatch = (normalizedTranscribed === normalizedReference);
-                    // MODIFIED (Request 3): Score threshold set to 80
+                    const isTextMatch = (normalizeText(transcribedText) === normalizeText(referenceText));
                     const isScorePass = score >= 80; 
                     const isCorrect = isTextMatch && isScorePass; 
 
                     if (isCorrect) {
                         if(scoreEl) {
-                            scoreEl.textContent = `Très bien ! (Score: ${score.toFixed(0)}/100)`;
+                            scoreEl.textContent = `Très bien ! (Score: ${score.toFixed(0)})`;
                             scoreEl.className = 'feedback-message text-green-500';
                         }
                         if(micBtn) micBtn.disabled = true;
-                        nextBtn.disabled = false; // 1. Pass: Enable next button
+                        nextBtn.disabled = false;
+                        updateNav(); // 버튼 상태 업데이트
                         sounds.correct?.triggerAttackRelease('C5', '0.2s');
                     } else {
-                        // Failed
                         if (isFirstAttempt) {
                             if(scoreEl) {
-                                scoreEl.textContent = `Réessayez. (Score: ${score.toFixed(0)}/100)`;
+                                scoreEl.textContent = `Réessayez. (Score: ${score.toFixed(0)})`;
                                 scoreEl.className = 'feedback-message text-red-500';
                             }
                             if(attemptsEl) attemptsEl.textContent = "Tentatives restantes : 1";
                             sounds.incorrect?.triggerAttackRelease('A#2', '0.2s');
-                            nextBtn.disabled = true; // 2. Fail 1st attempt: Keep next button disabled
+                            nextBtn.disabled = true;
                         } else {
-                            // Second attempt failed
                             if(scoreEl) {
-                                scoreEl.textContent = `Échec. (Score: ${score.toFixed(0)}/100) Réponse: ${referenceText}`;
-                                scoreEl.className = 'feedback-message text-red-500';
+                                scoreEl.textContent = `Passé. (Score: ${score.toFixed(0)})`;
+                                scoreEl.className = 'feedback-message text-orange-500';
                             }
                             if(attemptsEl) attemptsEl.textContent = "Tentatives restantes : 0";
                             if(micBtn) micBtn.disabled = true;
                             sounds.incorrect?.triggerAttackRelease('A#2', '0.2s');
-                            
-                            // MODIFIED (Request 3): Enable next button, do NOT auto-advance
-                            nextBtn.disabled = false; // 3. Fail 2nd attempt: Enable next button
-                            // REMOVED: setTimeout for auto-advance
+                            nextBtn.disabled = false;
+                            updateNav(); // 버튼 상태 업데이트
                         }
                     }
-
                 } catch (error) {
-                    console.error("Erreur lors de l'évaluation:", error); 
+                    console.error(error); 
                     if(scoreEl) {
-                        scoreEl.textContent = `Erreur de connexion. Veuillez réessayer.`;
+                        scoreEl.textContent = `Erreur. Réessayez.`;
                         scoreEl.className = 'feedback-message text-red-500';
                     }
-                    if (recognitionAttempts[uniqueId] > 0) recognitionAttempts[uniqueId]--; // Decrement attempt count on API error
+                    if (recognitionAttempts[uniqueId] > 0) recognitionAttempts[uniqueId]--;
                 } finally {
                     if(attemptsEl) attemptsEl.textContent = `Tentatives restantes : ${Math.max(0, 2 - (recognitionAttempts[uniqueId] || 0))}`;
                     if(micBtn) micBtn.classList.remove('loading');
-                    updateNav(); // This call is now safe because updateNav is smarter
                 }
             }
 
-            // --- Course Content ---
+            // --- Content Data ---
             const vocabulary = [
                 { kr: '가다', fr: 'Aller', image: 'https://static.wixstatic.com/media/699687_d1859f2594f143d8b898a61786cb0f7a~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3' },
                 { kr: '먹다', fr: 'Manger', image: 'https://static.wixstatic.com/media/699687_be8ea416444c4ebf88880a4a12471105~mv2.png', kr_audio_src: 'https://static.wixstatic.com/mp3/699687_430b147143644a538566e98178eaf1c3.mp3' },
@@ -507,11 +521,10 @@
                 let contentHTML = '';
                 const isInteractive = ['speech_practice', 'multiple_choice', 'matching_game'].includes(pageData.type);
                 
-                // Reset nav button state completely on every render
                 nextBtn.textContent = 'Suivant';
                 delete nextBtn.dataset.mode;
-                // MODIFIED (Request 3): Next button is disabled for all interactive pages initially
-                nextBtn.disabled = isInteractive;
+                // 기본적으로 인터랙티브 페이지는 다음 버튼 비활성화
+                if (isInteractive) nextBtn.disabled = true;
 
                 switch (pageData.type) {
                     case 'cover':
@@ -519,7 +532,6 @@
                         break;
                         
                     case 'speech_practice':
-                        // MODIFIED (Request 3): New HTML structure for speech practice
                         contentHTML = `
                             <div class="flex flex-col justify-center items-center h-full w-full">
                                 <div class="flex-grow w-full flex justify-center items-center">
@@ -529,13 +541,11 @@
                                     </div>
                                 </div>
                                 <div class="flex-shrink-0 w-full">
-                                    <div class="speech-container text-center">
-                                        <button id="mic-btn-${pageData.kr}" class="mic-btn" title="Cliquez et prononcez '${pageData.kr}'">
-                                            🎙️
-                                        </button>
-                                        <div id="speech-status-${pageData.kr}" class="text-base sm:text-xl text-slate-500 h-8">Cliquez sur le micro pour parler</div>
-                                        <div id="speech-score-${pageData.kr}" class="feedback-message text-base sm:text-xl h-8 sm:h-10"></div>
-                                        <div id="speech-attempts-${pageData.kr}" class="attempts-text">Tentatives restantes : 2</div>
+                                    <div class="speech-container">
+                                        <button id="mic-btn-${pageData.kr}" class="mic-btn">🎙️</button>
+                                        <div id="speech-status-${pageData.kr}" class="text-gray-500">Appuyez pour parler</div>
+                                        <div id="speech-score-${pageData.kr}" class="feedback-message"></div>
+                                        <div id="speech-attempts-${pageData.kr}" class="attempts-text">Tentatives : 2</div>
                                     </div>
                                 </div>
                             </div>`;
@@ -544,22 +554,22 @@
                     case 'multiple_choice':
                         const shuffledOptions = shuffleArray([...pageData.options]);
                         contentHTML = `
-                            <h2 class="title-text mb-8">${pageData.question}</h2>
-                            <div class="flex flex-col items-center w-full">
-                                ${shuffledOptions.map((opt, i) => `<button class="quiz-option" data-correct="${opt.isCorrect}">${opt.text}</button>`).join('')}
+                            <h2 class="title-text mb-6">${pageData.question}</h2>
+                            <div class="flex flex-col items-center w-full overflow-y-auto" style="max-height: 60vh;">
+                                ${shuffledOptions.map((opt) => `<button class="quiz-option" data-correct="${opt.isCorrect}">${opt.text}</button>`).join('')}
                             </div>`;
                         break;
 
                     case 'matching_game':
                         const shuffledFr = shuffleArray([...pageData.pairs]);
                         contentHTML = `
-                            <h2 class="title-text mb-6">Associez les paires</h2>
+                            <h2 class="title-text mb-4">Associez les paires</h2>
                             <div class="matching-game-container">
                                 <div class="match-column">
                                     ${pageData.pairs.map((p, i) => `<div class="match-card" data-pair-id="${i}" data-lang="kr">${p.kr}</div>`).join('')}
                                 </div>
                                 <div class="match-column">
-                                    ${shuffledFr.map((p, i) => `<div class="match-card" data-pair-id="${pageData.pairs.findIndex(item => item.fr === p.fr)}" data-lang="fr">${p.fr}</div>`).join('')}
+                                    ${shuffledFr.map((p) => `<div class="match-card" data-pair-id="${pageData.pairs.findIndex(item => item.fr === p.fr)}" data-lang="fr">${p.fr}</div>`).join('')}
                                 </div>
                             </div>`;
                         break;
@@ -577,85 +587,58 @@
             };
 
             function attachEventListeners(pageData) {
-                // MODIFIED (Request 3): Attach listener for Naver API Mic Button
+                // Speech Practice
                 if (pageData.type === 'speech_practice') {
                     const micBtn = slideWrapper.querySelector(`#mic-btn-${pageData.kr}`);
                     if (micBtn) {
                         micBtn.addEventListener('click', () => {
                             if (micBtn.disabled || micBtn.classList.contains('loading')) return;
-
-                            if (isRecording) {
-                                stopRecording(pageData); // Pass pageData
-                            } else {
-                                initAudioSynth(); // Ensure Tone is started
-                                startRecording(pageData); // Pass pageData
-                            }
+                            isRecording ? stopRecording(pageData) : (initAudioSynth(), startRecording(pageData));
                         });
                     }
-                    
-                    // Card Click Logic
                     const frCard = slideWrapper.querySelector('.fr-card');
-                    if(frCard) {
-                        frCard.addEventListener('click', () => {
-                            Tone.start();
-                            speak(frCard.dataset.text, 'fr-FR'); // Pass 'fr-FR'
-                        });
-                    }
+                    if(frCard) frCard.addEventListener('click', () => { Tone.start(); speak(frCard.dataset.text, 'fr-FR'); });
                     const krCard = slideWrapper.querySelector('.kr-card');
-                    if(krCard) {
-                        krCard.addEventListener('click', () => {
-                             const audioSrc = krCard.dataset.audio;
-                             if(audioSrc && !audioSrc.startsWith('placeholder')) {
-                                 const audio = new Audio(audioSrc);
-                                 audio.play().catch(e => console.error("Audio playback error:", e));
-                             } else {
-                                 Tone.start();
-                                 sounds.koreanWord.triggerAttackRelease('A4', '8n');
-                             }
-                        });
-                    }
-
-                } else if (pageData.type === 'multiple_choice') {
+                    if(krCard) krCard.addEventListener('click', () => { 
+                        if(pageData.kr_audio_src) new Audio(pageData.kr_audio_src).play().catch(e=>console.log(e)); 
+                        else { Tone.start(); sounds.koreanWord.triggerAttackRelease('A4', '8n'); }
+                    });
+                } 
+                // Quiz
+                else if (pageData.type === 'multiple_choice') {
                     const options = slideWrapper.querySelectorAll('.quiz-option');
                     options.forEach(opt => {
                         opt.onclick = () => {
-                            // MODIFIED: Ensure audio synth is ready
                             initAudioSynth();
                             options.forEach(o => o.classList.add('disabled'));
                             if (opt.dataset.correct === 'true') {
                                 opt.classList.add('correct');
                                 nextBtn.disabled = false;
+                                updateNav(); // 버튼 활성화 즉시 반영
                                 sounds.correct?.triggerAttackRelease('E5', '8n');
                             } else {
                                 opt.classList.add('incorrect');
                                 sounds.incorrect?.triggerAttackRelease('C3', '4n');
-                                
-                                // Set retry mode instead of showing answer and enabling next
                                 nextBtn.textContent = 'Réessayer';
                                 nextBtn.dataset.mode = 'retry';
                                 nextBtn.disabled = false;
                             }
                         };
                     });
-                } else if (pageData.type === 'matching_game') {
+                } 
+                // Matching Game
+                else if (pageData.type === 'matching_game') {
                     let selected = null;
                     let matchedCount = 0;
                     const cards = slideWrapper.querySelectorAll('.match-card');
                     cards.forEach(card => {
                         card.onclick = () => {
-                            // MODIFIED: Ensure audio synth is ready
                             initAudioSynth();
                             if (card.classList.contains('matched')) return;
-
                             if (!selected) {
-                                if(card.classList.contains('selected')) {
-                                    card.classList.remove('selected');
-                                    selected = null;
-                                } else {
-                                    cards.forEach(c => c.classList.remove('selected'));
-                                    card.classList.add('selected');
-                                    selected = card;
-                                }
+                                cards.forEach(c => c.classList.remove('selected'));
+                                card.classList.add('selected');
+                                selected = card;
                             } else {
                                 if (selected.dataset.lang !== card.dataset.lang && selected.dataset.pairId === card.dataset.pairId) {
                                     selected.classList.add('matched');
@@ -666,13 +649,14 @@
                                     sounds.correct?.triggerAttackRelease('E5', '8n');
                                     if (matchedCount === pageData.pairs.length) {
                                         nextBtn.disabled = false;
+                                        updateNav(); // 버튼 활성화 즉시 반영
                                     }
                                 } else {
                                     selected.classList.add('incorrect');
                                     card.classList.add('incorrect');
                                     sounds.incorrect?.triggerAttackRelease('C3', '4n');
                                     setTimeout(() => {
-                                        selected.classList.remove('incorrect', 'selected');
+                                        if(selected) selected.classList.remove('incorrect', 'selected');
                                         card.classList.remove('incorrect');
                                         selected = null;
                                     }, 800);
@@ -685,41 +669,45 @@
             
             const updateNav = () => {
                 prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
-                const progress = ((currentPage + 1) / courseData.length) * 100;
-                progressBar.style.width = `${progress}%`;
-
-                // Handle 'Next' button state for non-interactive vs interactive pages
+                
                 const pageData = courseData[currentPage];
                 const isInteractive = ['speech_practice', 'multiple_choice', 'matching_game'].includes(pageData.type);
                 
-                if (isInteractive) {
-                    // MODIFIED: If the button is *already* enabled (by passing a quiz or failing twice) 
-                    // or in retry mode, leave it alone.
-                    if (nextBtn.disabled === false || nextBtn.dataset.mode === 'retry') {
-                        // Do nothing, keep its current state (enabled).
-                    } else {
-                        // Otherwise, it's an interactive page that hasn't been completed, so disable it.
-                         nextBtn.disabled = true;
-                    }
-                } else {
-                    // On non-interactive slides, 'Suivant' is always enabled (unless it's the last page)
-                    nextBtn.disabled = currentPage === courseData.length - 1;
+                // 버튼 텍스트 및 가시성 설정
+                // 마지막 학습 페이지 (Completion 바로 전)
+                if (currentPage === courseData.length - 2) {
+                    nextBtn.innerText = 'Terminer';
+                    nextBtn.style.visibility = 'visible';
+                } 
+                // 완료 페이지
+                else if (currentPage === courseData.length - 1) {
+                    nextBtn.style.visibility = 'hidden';
+                    prevBtn.style.visibility = 'hidden';
+                } 
+                else {
+                    nextBtn.innerText = nextBtn.dataset.mode === 'retry' ? 'Réessayer' : 'Suivant';
+                    nextBtn.style.visibility = 'visible';
                 }
+
+                // 비활성화 로직 (이미 활성화된 상태거나 재시도 모드면 건드리지 않음)
+                if (isInteractive && !nextBtn.disabled && nextBtn.dataset.mode !== 'retry') {
+                    // Keep enabled
+                } else if (isInteractive && nextBtn.dataset.mode !== 'retry') {
+                    // nextBtn.disabled = true; // (renderPage에서 이미 초기화됨, 여기서 강제할 필요 없음)
+                } else if (!isInteractive) {
+                    nextBtn.disabled = false;
+                }
+                
+                const progress = ((currentPage + 1) / courseData.length) * 100;
+                progressBar.style.width = `${progress}%`;
             };
 
             const goToNextPage = () => {
-                // MODIFIED (Request 3): Stop any recording before going to next page
-                if (isRecording) {
-                    stopRecording(courseData[currentPage]);
-                }
+                if (isRecording) stopRecording(courseData[currentPage]);
 
                 if (nextBtn.dataset.mode === 'retry') {
-                    // This is 'Retry' logic for multiple choice
                     const options = slideWrapper.querySelectorAll('.quiz-option');
-                    options.forEach(o => {
-                        o.classList.remove('disabled', 'incorrect');
-                    });
-                    
+                    options.forEach(o => o.classList.remove('disabled', 'incorrect', 'correct'));
                     nextBtn.textContent = 'Suivant';
                     delete nextBtn.dataset.mode;
                     nextBtn.disabled = true;
@@ -727,27 +715,28 @@
                 }
 
                 if (currentPage < courseData.length - 1) {
+                    // 마지막 학습 페이지(매칭 게임 등)에서 완료 버튼 누름 -> 메시지 전송
+                    if (currentPage === courseData.length - 2) {
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'lesson_complete' }, '*');
+                            console.log('Lesson complete message sent.');
+                        }
+                    }
+
                     currentPage++;
                     renderPage();
-                    sounds.nextPage?.triggerAttackRelease('C5', '8n');
-                }
-                
-                // MODIFIED (Request 2): Send postMessage on last page (moved from inside if)
-                if (currentPage === courseData.length - 1) {
-                    sounds.completion?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5", Tone.now());
+                    Tone.start();
                     
-                    if (window.parent) {
-                        window.parent.postMessage('lessonCompleted', '*');
+                    if (currentPage === courseData.length - 1) {
+                        sounds.completion?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
+                    } else {
+                        sounds.nextPage?.triggerAttackRelease('C5', '8n');
                     }
                 }
             };
             
             const goToPrevPage = () => {
-                // MODIFIED (Request 3): Stop any recording before going to prev page
-                if (isRecording) {
-                    stopRecording(courseData[currentPage]);
-                }
-
+                if (isRecording) stopRecording(courseData[currentPage]);
                 if (currentPage > 0) {
                     currentPage--;
                     renderPage();
@@ -756,13 +745,11 @@
 
             nextBtn.addEventListener('click', goToNextPage);
             prevBtn.addEventListener('click', goToPrevPage);
-
-            renderPage();
             
-            // Add global listeners to start audio context on first user interaction
-            // MODIFIED: Point to the correct init function
             document.body.addEventListener('click', initAudioSynth, { once: true });
             document.body.addEventListener('touchstart', initAudioSynth, { once: true });
+            
+            renderPage();
         });
     </script>
 </body>
