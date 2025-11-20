@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 4: Conjugaison formelle au présent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* --- 기본 레이아웃 설정 --- */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            height: 100vh;
+            width: 100vw;
+            padding: 0.5rem;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #course-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 100%; 
+            max-height: 100%;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #slide-wrapper {
+            width: 100%;
+            flex: 1; /* 남은 공간 채움 */
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            background-color: white;
+            overflow-y: auto; /* 내용이 많을 경우 내부 스크롤 허용 */
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 텍스트 스타일 */
+        .title-text {
+            font-size: clamp(1.2rem, 4vh, 2rem);
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .body-text {
+            font-size: clamp(0.9rem, 2.5vh, 1.3rem);
+            color: #1a1a1a;
+            line-height: 1.5;
+            max-width: 90%;
+        }
+        
+        .terminaison { color: #ef4444; font-weight: 600; }
+        .radical { color: #3b82f6; font-weight: 600; }
+        .footnote { font-size: clamp(0.7rem, 1.5vh, 0.9rem); color: #64748b; margin-top: 0.25rem; }
+
+        /* 네비게이션 바 */
+        .nav-container {
+            padding: 0.5rem 1rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 60px;
+        }
+
+        .nav-button {
+            background-color: #38bdf8;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        .nav-button:hover { background-color: #0ea5e9; }
+        .nav-button:disabled { background-color: #cbd5e1; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.3s ease; }
+
+        /* --- Conjugation Formula Styles (Mobile Optimized) --- */
+        .conjugation-formula-cards {
+            display: flex;
+            flex-wrap: wrap; /* 모바일에서 줄바꿈 허용 */
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+        .formula-element {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin: 0.25rem;
+        }
+        .formula-card {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.5rem 1rem;
+            font-size: clamp(1.2rem, 3vh, 2rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .formula-card:active {
+            transform: scale(0.95);
+            border-color: #38bdf8;
+        }
+        .formula-text {
+            font-size: clamp(1.2rem, 3vh, 2rem);
+            font-weight: 600;
+            padding: 0.5rem 0;
+        }
+        .formula-symbol {
+            font-size: clamp(1.2rem, 3vh, 2rem);
+            font-weight: bold;
+            color: #9ca3af;
+            margin: 0 0.25rem;
+        }
+
+        @media (max-width: 480px) {
+             body { padding: 0; }
+             #course-container { border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="course-container">
+        <div id="slide-wrapper"></div>
+        
+        <div class="nav-container">
+             <button id="prev-btn" class="nav-button">Précédent</button>
+             <div class="w-1/3 mx-2">
+                 <div class="progress-bar-container">
+                      <div id="progress-bar" class="progress-bar"></div>
+                 </div>
+             </div>
+             <button id="next-btn" class="nav-button">Suivant</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slideWrapper = document.getElementById('slide-wrapper');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+
+            // --- Sound Synthesis Setup ---
+            let sounds = {};
+            let soundsReady = false;
+            
+            const initAudioSynth = async () => {
+                if (soundsReady) return;
+                try {
+                    await Tone.start();
+                    sounds = {
+                        nextPage: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+                        completion: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination(),
+                        koreanWord: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination()
+                    };
+                    sounds.completion.volume.value = -6;
+                    soundsReady = true;
+                } catch(e) {
+                    console.error("Audio context error", e);
+                }
+            };
+
+            const courseData = [
+                { type: 'cover', title: "Leçon 4 : Conjugaison formelle au présent", text: "Dans ce cours, nous allons apprendre à conjuguer les prédicats au style formel." },
+                { type: 'definition', title: "Les Niveaux de Langage", text: "Le style formel (soutenu) est utilisé dans des situations officielles ou pour s'adresser avec respect à quelqu'un de plus âgé." },
+                { 
+                    type: 'conjugation_rule', 
+                    rule_text: "Quand le radical se termine par une voyelle, on ajoute 'ㅂ니다'.",
+                    infinitive: '가다', infinitive_audio: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3', fr_infinitive: 'Aller', 
+                    radical: '가', terminaison: 'ㅂ니다', result: '갑니다', result_audio: 'https://static.wixstatic.com/mp3/699687_6b26d193cdf44c17b952a7486b0e3863.mp3',
+                    result_footnote: 'conjugué au style formel'
+                },
+                { 
+                    type: 'conjugation_rule', 
+                    rule_text: "Quand le radical se termine par une voyelle, on ajoute 'ㅂ니다'.",
+                    infinitive: '예쁘다', infinitive_audio: 'https://static.wixstatic.com/mp3/699687_da09a3443b234b3d9416ba37ede44cd8.mp3', fr_infinitive: 'Être joli', 
+                    radical: '예쁘', terminaison: 'ㅂ니다', result: '예쁩니다', result_audio: 'https://static.wixstatic.com/mp3/699687_4c1b4e85db2f4fbd9d0060273388a09d.mp3',
+                    result_footnote: 'conjugué au style formel'
+                },
+                { 
+                    type: 'conjugation_rule', 
+                    rule_text: "Quand le radical se termine par une voyelle, on ajoute 'ㅂ니다'.",
+                    infinitive: '자다', infinitive_audio: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3', fr_infinitive: 'Dormir', 
+                    radical: '자', terminaison: 'ㅂ니다', result: '잡니다', result_audio: 'https://static.wixstatic.com/mp3/699687_6c93d6a3727e4beb9c599b3840f67c82.mp3',
+                    result_footnote: 'conjugué au style formel'
+                },
+                { 
+                    type: 'conjugation_rule', 
+                    rule_text: "Quand le radical se termine par une voyelle, on ajoute 'ㅂ니다'.",
+                    infinitive: '켜다', infinitive_audio: 'https://static.wixstatic.com/mp3/699687_d9d2e17d0ed7412381095b7f38852d24.mp3', fr_infinitive: 'Allumer', 
+                    radical: '켜', terminaison: 'ㅂ니다', result: '켭니다', result_audio: 'https://static.wixstatic.com/mp3/699687_682debf4dd1748c8b513ec17f49a72e0.mp3',
+                    result_footnote: 'conjugué au style formel'
+                },
+                { type: 'definition', title: "Radical avec Consonne", text: "Quand le radical se termine par une consonne finale (받침), on ajoute '습니다'." },
+                { 
+                    type: 'conjugation_rule', 
+                    rule_text: "Quand le radical se termine par une consonne, on ajoute '습니다'.",
+                    infinitive: '먹다', infinitive_audio: 'https://static.wixstatic.com/mp3/699687_430b147143644a538566e98178eaf1c3.mp3', fr_infinitive: 'Manger', 
+                    radical: '먹', terminaison: '습니다', result: '먹습니다', result_audio: 'https://static.wixstatic.com/mp3/699687_4bb605a87aed40e59bb5f9a620112c95.mp3',
+                    result_footnote: 'conjugué au style formel'
+                },
+                 { 
+                    type: 'conjugation_rule', 
+                    rule_text: "Quand le radical se termine par une consonne, on ajoute '습니다'.",
+                    infinitive: '춥다', infinitive_audio: 'https://static.wixstatic.com/mp3/699687_44ea5d2318e841c4af555e0cfab3dcef.mp3', fr_infinitive: 'Faire froid', 
+                    radical: '춥', terminaison: '습니다', result: '춥습니다', result_audio: 'https://static.wixstatic.com/mp3/699687_4c70c0b6624843d0968ea049c8805612.mp3',
+                    result_footnote: 'conjugué au style formel'
+                },
+                 { 
+                    type: 'conjugation_rule', 
+                    rule_text: "Quand le radical se termine par une consonne, on ajoute '습니다'.",
+                    infinitive: '찾다', infinitive_audio: 'https://static.wixstatic.com/mp3/699687_51aec296c1074a16857f0ed95541bbf3.mp3', fr_infinitive: 'Chercher', 
+                    radical: '찾', terminaison: '습니다', result: '찾습니다', result_audio: 'https://static.wixstatic.com/mp3/699687_207b00f181a84db091e2c8d5ef5fe7c4.mp3',
+                    result_footnote: 'conjugué au style formel'
+                },
+                { 
+                    type: 'conjugation_rule', 
+                    rule_text: "Quand le radical se termine par une consonne, on ajoute '습니다'.",
+                    infinitive: '씻다', infinitive_audio: 'https://static.wixstatic.com/mp3/699687_48e5bd34e068452e81e72fe53774c71d.mp3', fr_infinitive: 'Se laver', 
+                    radical: '씻', terminaison: '습니다', result: '씻습니다', result_audio: 'https://static.wixstatic.com/mp3/699687_bc0757a56b204ea8892e4eb55b38dc49.mp3',
+                    result_footnote: 'conjugué au style formel'
+                },
+                { type: 'completion', text: "Félicitations ! Passez à la Leçon 5 pour vous exercer sur la conjugaison formelle." }
+            ];
+
+            let currentPage = 0;
+
+            const renderPage = () => {
+                const pageData = courseData[currentPage];
+                let contentHTML = '';
+
+                switch (pageData.type) {
+                    case 'cover':
+                        contentHTML = `<h1 class="title-text mb-6">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`;
+                        break;
+                    case 'definition':
+                        contentHTML = `<h2 class="title-text mb-4">${pageData.title}</h2><p class="body-text">${pageData.text}</p>`;
+                        break;
+                    case 'conjugation_rule':
+                        contentHTML = `
+                            <p class="body-text mb-4">${pageData.rule_text}</p>
+                            <div class="conjugation-formula-cards">
+                                <div class="formula-element">
+                                    <div class="formula-card" data-audio="${pageData.infinitive_audio}">${pageData.infinitive}</div>
+                                    <div class="footnote">(infinitif)</div>
+                                </div>
+                                <div class="formula-symbol">→</div>
+                                <div class="formula-element">
+                                    <div class="formula-text"><span class="radical">${pageData.radical}</span></div>
+                                    <div class="footnote">(radical)</div>
+                                </div>
+                                <div class="formula-symbol">+</div>
+                                <div class="formula-element">
+                                    <div class="formula-text"><span class="terminaison">${pageData.terminaison}</span></div>
+                                    <div class="footnote">(terminaison)</div>
+                                </div>
+                                <div class="formula-symbol">=</div>
+                                <div class="formula-element">
+                                    <div class="formula-card" data-audio="${pageData.result_audio}" style="border-color:#3b82f6; background-color:#eff6ff;">${pageData.result}</div>
+                                    <div class="footnote">(formel)</div>
+                                </div>
+                            </div>
+                            <div class="footnote mt-4 text-center">(${pageData.fr_infinitive})</div>
+                        `;
+                        break;
+                    case 'completion':
+                        contentHTML = `<h1 class="text-5xl font-bold text-sky-500 mb-4">🎉</h1><p class="body-text">${pageData.text}</p>`;
+                        break;
+                }
+
+                slideWrapper.innerHTML = `<div class="slide">${contentHTML}</div>`;
+                setTimeout(() => slideWrapper.querySelector('.slide').classList.add('active'), 10);
+                
+                attachEventListeners();
+                updateNav();
+            };
+            
+            function attachEventListeners() {
+                const audioCards = slideWrapper.querySelectorAll('.formula-card');
+                audioCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                         initAudioSynth();
+                         const audioSrc = card.dataset.audio;
+                         if(audioSrc && !audioSrc.startsWith('placeholder')) {
+                             const audio = new Audio(audioSrc);
+                             audio.play().catch(e => console.error("Audio playback error:", e));
+                         } else {
+                             Tone.start();
+                             sounds.koreanWord.triggerAttackRelease('A4', '8n');
+                         }
+                    });
+                });
+            }
+
+            const updateNav = () => {
+                prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
+                nextBtn.disabled = false; 
+                
+                // 마지막 학습 페이지 (완료 페이지 바로 전)
+                if (currentPage === courseData.length - 2) {
+                    nextBtn.innerText = 'Terminer';
+                    nextBtn.style.visibility = 'visible';
+                } else if (currentPage === courseData.length - 1) {
+                    nextBtn.style.visibility = 'hidden';
+                    prevBtn.style.visibility = 'hidden';
+                } else {
+                    nextBtn.innerText = 'Suivant';
+                    nextBtn.style.visibility = 'visible';
+                }
+                
+                const progress = ((currentPage + 1) / courseData.length) * 100;
+                progressBar.style.width = `${progress}%`;
+            };
+
+            const goToNextPage = () => {
+                if (currentPage < courseData.length - 1) {
+                    // Terminer 버튼 클릭 시 (완료 페이지로 이동 전)
+                    if (currentPage === courseData.length - 2) {
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'lesson_complete' }, '*');
+                            console.log('Lesson complete message sent.');
+                        }
+                    }
+
+                    currentPage++;
+                    renderPage();
+                    initAudioSynth(); // Ensure Audio Context
+                    
+                    if (currentPage === courseData.length - 1) {
+                        sounds.completion?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
+                    } else {
+                        sounds.nextPage?.triggerAttackRelease('C5', '8n');
+                    }
+                }
+            };
+            
+            const goToPrevPage = () => {
+                if (currentPage > 0) {
+                    currentPage--;
+                    renderPage();
+                }
+            };
+
+            nextBtn.addEventListener('click', goToNextPage);
+            prevBtn.addEventListener('click', goToPrevPage);
+            
+            document.body.addEventListener('click', initAudioSynth, { once: true });
+            document.body.addEventListener('touchstart', initAudioSynth, { once: true });
+
+            renderPage();
+        });
+    </script>
+</body>
+</html>
