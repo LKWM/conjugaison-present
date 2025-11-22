@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 7: Les Groupes de Prédicats</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* --- 기본 레이아웃 설정 --- */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            height: 100vh;
+            width: 100vw;
+            padding: 0.5rem;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #course-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 100%; 
+            max-height: 100%;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #slide-wrapper {
+            width: 100%;
+            flex: 1; /* 남은 공간 채움 */
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            background-color: white;
+            overflow-y: auto; /* 내용 많을 경우 스크롤 허용 */
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 텍스트 스타일 */
+        .title-text {
+            font-size: clamp(1.2rem, 4vh, 2rem);
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .body-text {
+            font-size: clamp(0.9rem, 2.5vh, 1.2rem);
+            color: #1a1a1a;
+            line-height: 1.5;
+            max-width: 90%;
+        }
+        
+        .terminaison { color: #ef4444; font-weight: 600; }
+        .radical { color: #3b82f6; font-weight: 600; }
+        .footnote { font-size: clamp(0.7rem, 1.5vh, 0.9rem); color: #64748b; margin-top: 0.25rem; }
+
+        /* 네비게이션 바 */
+        .nav-container {
+            padding: 0.5rem 1rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 60px;
+        }
+
+        .nav-button {
+            background-color: #38bdf8;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        .nav-button:hover { background-color: #0ea5e9; }
+        .nav-button:disabled { 
+            background-color: #cbd5e1; 
+            cursor: not-allowed; 
+            box-shadow: none; 
+            opacity: 0.7;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.3s ease; }
+
+        /* --- Definition Card Styles --- */
+        .definition-card {
+             background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 0.75rem;
+             padding: 0.5rem 1rem; font-size: clamp(1.2rem, 3vh, 1.8rem); font-weight: 600;
+             cursor: pointer; transition: all 0.2s ease; display: inline-block;
+        }
+        .definition-card:active { transform: scale(0.95); border-color: #38bdf8; }
+
+        /* --- Multi-select Quiz Styles --- */
+        .quiz-container { 
+            display: flex; flex-direction: column; align-items: center; width: 100%; gap: 1rem; 
+            max-height: 100%; overflow-y: auto;
+        }
+        .quiz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        .quiz-option-btn {
+            background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 0.75rem;
+            padding: 0.8rem; font-size: clamp(1rem, 2.5vh, 1.2rem); font-weight: 500;
+            cursor: pointer; transition: all 0.2s ease; text-align: center;
+        }
+        .quiz-option-btn:active { transform: scale(0.98); }
+        .quiz-option-btn.selected {
+            background-color: #e0f2fe; border-color: #38bdf8; color: #0c4a6e;
+        }
+        
+        /* 정답/오답 스타일 추가 */
+        .quiz-option-btn.correct-selection { 
+            background-color: #dcfce7 !important; 
+            border-color: #22c55e !important; 
+            color: #166534 !important; 
+        }
+        .quiz-option-btn.incorrect-selection { 
+            background-color: #fee2e2 !important; 
+            border-color: #ef4444 !important; 
+            color: #991b1b !important; 
+            animation: shake 0.5s; 
+        }
+        
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        
+        .hint-btn {
+            background: none; border: 2px solid #fbbf24; color: #d97706; padding: 0.4rem 0.8rem;
+            border-radius: 9999px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+        }
+        .hint-btn:hover { background-color: #fef3c7; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 100;
+        }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content {
+            background-color: white; padding: 1.5rem; border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 90%; text-align: center;
+        }
+
+        @media (max-width: 480px) {
+             body { padding: 0; }
+             #course-container { border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="course-container">
+        <div id="slide-wrapper"></div>
+        
+        <div class="nav-container">
+             <button id="prev-btn" class="nav-button">Précédent</button>
+             <div class="w-1/3 mx-2">
+                 <div class="progress-bar-container">
+                      <div id="progress-bar" class="progress-bar"></div>
+                 </div>
+             </div>
+             <button id="next-btn" class="nav-button">Suivant</button>
+        </div>
+    </div>
+    
+    <div id="modal-container"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slideWrapper = document.getElementById('slide-wrapper');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const modalContainer = document.getElementById('modal-container');
+
+            const sounds = {
+                nextPage: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+                correct: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
+                incorrect: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.3 } }).toDestination(),
+                completion: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination(),
+                koreanWord: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination()
+            };
+            sounds.completion.volume.value = -6;
+
+            const vocabulary = {
+                '가다': { fr: 'Aller', audio: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3' },
+                '보다': { fr: 'Regarder', audio: 'https://static.wixstatic.com/mp3/699687_78c3059cb0464d1ab6f22cc4cbe38c7d.mp3' },
+                '먹다': { fr: 'Manger', audio: 'https://static.wixstatic.com/mp3/699687_430b147143644a538566e98178eaf1c3.mp3' },
+                '마시다': { fr: 'Boire', audio: 'https://static.wixstatic.com/mp3/699687_4ea7cd7a1f464fac88e0f862988fca1e.mp3' },
+                '예쁘다': { fr: 'Être joli', audio: 'https://static.wixstatic.com/mp3/699687_da09a3443b234b3d9416ba37ede44cd8.mp3' },
+                '자다': { fr: 'Dormir', audio: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3' },
+                '켜다': { fr: 'Allumer', audio: 'https://static.wixstatic.com/mp3/699687_d9d2e17d0ed7412381095b7f38852d24.mp3' },
+                '춥다': { fr: 'Faire froid', audio: 'https://static.wixstatic.com/mp3/699687_44ea5d2318e841c4af555e0cfab3dcef.mp3' },
+                '찾다': { fr: 'Chercher', audio: 'https://static.wixstatic.com/mp3/699687_51aec296c1074a16857f0ed95541bbf3.mp3' },
+                '씻다': { fr: 'Se laver', audio: 'https://static.wixstatic.com/mp3/699687_48e5bd34e068452e81e72fe53774c71d.mp3' },
+            };
+
+            const courseData = [
+                { type: 'cover', title: 'Les Groupes de Prédicats', text: 'Dans ce cours, nous allons apprendre à classifier les prédicats.' },
+                { type: 'definition', title: 'Introduction', text: "Pour la conjugaison au style poli/informel, les prédicats se divisent en deux groupes selon la forme de leur radical." },
+                { 
+                    type: 'group_definition',
+                    title: 'Prédicats du Groupe 1',
+                    text: "Si la dernière voyelle du radical est 'ㅏ' ou 'ㅗ', le prédicat appartient au Groupe 1.",
+                    examples: [
+                        { infinitive: '가다', radical: '가', explanation: "la dernière voyelle = ㅏ" },
+                        { infinitive: '보다', radical: '보', explanation: "la dernière voyelle = ㅗ" }
+                    ]
+                },
+                { 
+                    type: 'group_definition',
+                    title: 'Prédicats du Groupe 2',
+                    text: "Si la dernière voyelle du radical n'est ni 'ㅏ' ni 'ㅗ', le prédicat appartient au Groupe 2.",
+                    examples: [
+                        { infinitive: '먹다', radical: '먹', explanation: "la dernière voyelle = ㅓ" },
+                        { infinitive: '마시다', radical: '마시', explanation: "la dernière voyelle = ㅣ" }
+                    ]
+                },
+                {
+                    type: 'multi_select_quiz',
+                    question: 'Sélectionnez tous les prédicats du Groupe 1.',
+                    hint: 'Groupe 1 : radical avec ㅏ ou ㅗ.',
+                    options: ['가다', '예쁘다', '자다', '켜다', '먹다', '춥다', '찾다', '씻다', '보다', '마시다'],
+                    answers: ['가다', '자다', '찾다', '보다']
+                },
+                {
+                    type: 'multi_select_quiz',
+                    question: 'Sélectionnez tous les prédicats du Groupe 2.',
+                    hint: "Groupe 2 : radical sans ㅏ ni ㅗ.",
+                    options: ['가다', '예쁘다', '자다', '켜다', '먹다', '춥다', '찾다', '씻다', '보다', '마시다'],
+                    answers: ['예쁘다', '켜다', '먹다', '춥다', '씻다', '마시다']
+                },
+                { type: 'completion', text: 'Félicitations ! Passez à la Leçon 8 pour apprendre la conjugaison informelle.' }
+            ];
+
+            let currentPage = 0;
+
+            const renderPage = () => {
+                const pageData = courseData[currentPage];
+                let contentHTML = '';
+                
+                // Reset Next Button
+                nextBtn.textContent = 'Suivant';
+                delete nextBtn.dataset.mode;
+                
+                // 퀴즈 페이지에서는 처음에 비활성화
+                nextBtn.disabled = pageData.type === 'multi_select_quiz';
+
+                switch (pageData.type) {
+                    case 'cover':
+                        contentHTML = `<h1 class="title-text mb-6">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`;
+                        break;
+                    case 'definition':
+                        contentHTML = `<h2 class="title-text mb-4">${pageData.title}</h2><p class="body-text">${pageData.text}</p>`;
+                        break;
+                    case 'group_definition':
+                        contentHTML = `
+                            <h2 class="title-text mb-4">${pageData.title}</h2>
+                            <p class="body-text mb-6">${pageData.text}</p>
+                            <div class="flex flex-col gap-4 w-full items-center">
+                                ${pageData.examples.map(ex => `
+                                    <div class="flex items-center flex-wrap justify-center gap-2 text-xl w-full">
+                                        <div class="definition-card" data-word="${ex.infinitive}">
+                                            ${ex.infinitive}
+                                            <div class="footnote">(${vocabulary[ex.infinitive].fr})</div>
+                                        </div>
+                                        <span class="text-gray-400">→</span>
+                                        <div class="text-center">
+                                            <span class="radical font-bold">${ex.radical}</span>
+                                            <div class="footnote">radical</div>
+                                        </div>
+                                        <span class="text-base text-gray-600 w-full text-center mt-1">(${ex.explanation})</span>
+                                    </div>
+                                `).join('')}
+                            </div>`;
+                        break;
+                    case 'multi_select_quiz':
+                        nextBtn.textContent = 'Vérifier';
+                        contentHTML = `
+                            <div class="quiz-container">
+                                <h2 class="title-text text-center mb-2">${pageData.question}</h2>
+                                <button class="hint-btn mb-4">💡 Aide</button>
+                                <div class="quiz-grid">
+                                    ${pageData.options.map(opt => `<button class="quiz-option-btn" data-value="${opt}">${opt}</button>`).join('')}
+                                </div>
+                            </div>`;
+                        break;
+                    case 'completion':
+                        contentHTML = `<h1 class="text-5xl font-bold text-sky-500 mb-4">🎉</h1><p class="body-text">${pageData.text}</p>`;
+                        break;
+                }
+
+                slideWrapper.innerHTML = `<div class="slide">${contentHTML}</div>`;
+                setTimeout(() => slideWrapper.querySelector('.slide').classList.add('active'), 10);
+                
+                attachEventListeners(pageData);
+                updateNav();
+            };
+
+            const showModal = (content) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                overlay.innerHTML = `<div class="modal-content">${content}</div>`;
+                overlay.onclick = (e) => {
+                    if (e.target === overlay) {
+                        overlay.classList.remove('visible');
+                        setTimeout(() => overlay.remove(), 300);
+                    }
+                };
+                modalContainer.appendChild(overlay);
+                setTimeout(() => overlay.classList.add('visible'), 10);
+            };
+            
+            function attachEventListeners(pageData) {
+                slideWrapper.querySelectorAll('.definition-card').forEach(card => {
+                    card.onclick = (e) => {
+                        const word = e.currentTarget.dataset.word;
+                        const audioSrc = vocabulary[word]?.audio;
+                        Tone.start();
+                        if (audioSrc) {
+                            new Audio(audioSrc).play().catch(err => console.error(err));
+                        } else {
+                            sounds.koreanWord.triggerAttackRelease('A4', '8n');
+                        }
+                    };
+                });
+
+                if (pageData.type === 'multi_select_quiz') {
+                    const buttons = slideWrapper.querySelectorAll('.quiz-option-btn');
+                    buttons.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            // 이미 맞춘 상태거나 재시도 중이 아니면 선택 토글
+                            if (nextBtn.dataset.mode !== 'retry') {
+                                btn.classList.toggle('selected');
+                                nextBtn.disabled = false;
+                            }
+                        });
+                    });
+                    const hintBtn = slideWrapper.querySelector('.hint-btn');
+                    if(hintBtn) {
+                        hintBtn.onclick = () => showModal(`<p class="body-text">${pageData.hint}</p>`);
+                    }
+                }
+            }
+
+            const updateNav = () => {
+                prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
+                
+                if (currentPage === courseData.length - 2) {
+                    if (nextBtn.dataset.mode !== 'retry') nextBtn.innerText = 'Terminer';
+                }
+                
+                if (currentPage === courseData.length - 1) {
+                    nextBtn.style.visibility = 'hidden';
+                    prevBtn.style.visibility = 'hidden';
+                } else {
+                    nextBtn.style.visibility = 'visible';
+                }
+
+                const progress = ((currentPage + 1) / courseData.length) * 100;
+                progressBar.style.width = `${progress}%`;
+            };
+
+            const goToNextPage = () => {
+                const pageData = courseData[currentPage];
+
+                // 퀴즈 로직 처리
+                if (pageData.type === 'multi_select_quiz') {
+                    if (nextBtn.dataset.mode === 'retry') {
+                        // 재시도 모드: 선택 초기화 및 버튼 상태 복구
+                        const buttons = slideWrapper.querySelectorAll('.quiz-option-btn');
+                        buttons.forEach(btn => {
+                            // 선택 상태 및 스타일 초기화
+                            btn.classList.remove('selected', 'correct-selection', 'incorrect-selection');
+                            btn.disabled = false;
+                        });
+                        nextBtn.textContent = 'Vérifier';
+                        nextBtn.disabled = true;
+                        delete nextBtn.dataset.mode;
+                        return;
+                    }
+
+                    const selectedButtons = Array.from(slideWrapper.querySelectorAll('.quiz-option-btn.selected'));
+                    const selectedValues = selectedButtons.map(btn => btn.dataset.value);
+                    const correctAnswers = pageData.answers;
+                    
+                    // 정답 체크: 선택한 것이 정답 목록에 모두 포함되어야 하고, 오답이 없어야 함. 
+                    // (단, 정답을 모두 고르지 않아도 재시도 처리)
+                    const hasIncorrectSelection = selectedValues.some(val => !correctAnswers.includes(val));
+                    const hasAllCorrectAnswers = correctAnswers.every(val => selectedValues.includes(val));
+                    const isFullyCorrect = !hasIncorrectSelection && hasAllCorrectAnswers;
+
+                    if (isFullyCorrect) {
+                        Tone.start();
+                        
+                        // 마지막 퀴즈였다면 postMessage 전송
+                        if (currentPage === courseData.length - 2) {
+                            if (window.parent) {
+                                window.parent.postMessage({ type: 'lesson_complete' }, '*');
+                                console.log('Lesson complete message sent.');
+                            }
+                        }
+                        
+                        currentPage++;
+                        renderPage();
+                        
+                        // 완료 페이지일 경우 효과음 처리
+                        if (currentPage === courseData.length - 1) {
+                            sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
+                        } else {
+                            sounds.correct.triggerAttackRelease('E5', '8n');
+                        }
+                    } else {
+                        // 틀린 경우 (일부만 맞았거나 오답 포함)
+                        Tone.start(); sounds.incorrect.triggerAttackRelease('C3', '4n');
+                        
+                        // 선택된 버튼들에 대해 정답 여부 표시
+                        selectedButtons.forEach(btn => {
+                            const val = btn.dataset.value;
+                            if (correctAnswers.includes(val)) {
+                                btn.classList.add('correct-selection'); // 맞은 것 초록색
+                            } else {
+                                btn.classList.add('incorrect-selection'); // 틀린 것 빨간색
+                            }
+                        });
+                        
+                        // 확인 중에는 수정 불가
+                        const allButtons = slideWrapper.querySelectorAll('.quiz-option-btn');
+                        allButtons.forEach(btn => btn.disabled = true);
+
+                        nextBtn.textContent = 'Réessayer';
+                        nextBtn.dataset.mode = 'retry';
+                    }
+                    return;
+                }
+
+                // 일반 페이지 이동
+                if (currentPage < courseData.length - 1) {
+                    currentPage++;
+                    renderPage();
+                    Tone.start();
+                    if (currentPage === courseData.length - 1) {
+                        sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5", Tone.now());
+                    } else {
+                        sounds.nextPage.triggerAttackRelease('C5', '8n');
+                    }
+                }
+            };
+            
+            const goToPrevPage = () => {
+                if (currentPage > 0) {
+                    currentPage--;
+                    renderPage();
+                }
+            };
+
+            nextBtn.addEventListener('click', goToNextPage);
+            prevBtn.addEventListener('click', goToPrevPage);
+            renderPage();
+        });
+    </script>
+</body>
+</html>
