@@ -428,6 +428,7 @@
                     const transcribedText = result.text || '';
                     const score = (result.assessment ? result.assessment.pronunciation_score : 0) || 0;
 
+                    // 사용자 입력(인식된 텍스트)는 상단 상태바에 표시
                     if (statusEl) statusEl.textContent = `"${transcribedText || '...'}"`;
 
                     const isTextMatch = (normalizeText(transcribedText) === normalizeText(referenceText));
@@ -442,21 +443,20 @@
                         if(micBtn) micBtn.disabled = true;
                         nextBtn.disabled = false;
                         updateNav(); 
-                        sounds.correct?.triggerAttackRelease('E5', '8n');
+                        sounds.correct?.triggerAttackRelease('C5', '0.2s');
                     } else {
+                        // 틀렸을 경우 (1차/2차 상관없이 정답 및 점수 표기)
+                        if (scoreEl) {
+                            // 수정됨: 틀린 경우 점수와 정답만 표시 (유저 발언 반복 안함)
+                            scoreEl.innerHTML = `Incorrect. (Score: ${score.toFixed(0)}) Réponse : <span class="text-blue-600">'${referenceText}'</span>`;
+                            scoreEl.className = 'feedback-message text-red-500';
+                        }
+
                         if (isFirstAttempt) {
-                            if(scoreEl) {
-                                scoreEl.textContent = `Réessayez. (Score: ${score.toFixed(0)})`;
-                                scoreEl.className = 'feedback-message text-red-500';
-                            }
                             if(attemptsEl) attemptsEl.textContent = "Tentatives : 1";
                             sounds.incorrect?.triggerAttackRelease('A#2', '0.2s');
                             nextBtn.disabled = true;
                         } else {
-                            if(scoreEl) {
-                                scoreEl.textContent = `Passé. (Score: ${score.toFixed(0)})`;
-                                scoreEl.className = 'feedback-message text-orange-500';
-                            }
                             if(attemptsEl) attemptsEl.textContent = "Tentatives : 0";
                             if(micBtn) micBtn.disabled = true;
                             sounds.incorrect?.triggerAttackRelease('A#2', '0.2s');
@@ -522,6 +522,11 @@
                             `<div class="vocab-card image-card" style="background-image: url('${vocab.image}')" data-fr="${vocab.fr}"></div>`;
                         const rightCardText = isConjugated ? vocab.conjugated : vocab.kr;
                         const rightCardAudio = isConjugated ? vocab.conjugated_audio : vocab.audio;
+                        
+                        // 명확한 지시문 생성 (원형 vs 변형형)
+                        const instructionText = isConjugated 
+                            ? "Écoutez et répétez la forme formelle" 
+                            : "Écoutez et répétez l'infinitif";
 
                         contentHTML = `
                             <div class="flex flex-col justify-center items-center h-full w-full">
@@ -533,6 +538,7 @@
                                 </div>
                                 <div class="flex-shrink-0 w-full">
                                     <div class="speech-container">
+                                        <h3 class="text-lg md:text-xl font-bold text-gray-700 mb-3 text-center">${instructionText}</h3>
                                         <button id="mic-btn-${pageData.uniqueId}" class="mic-btn">🎙️</button>
                                         <div id="speech-status-${pageData.uniqueId}" class="speech-status">Appuyez pour parler</div>
                                         <div id="speech-score-${pageData.uniqueId}" class="feedback-message"></div>
@@ -681,7 +687,7 @@
                     if (currentPage === coursePages.length - 2) {
                         if (window.parent) {
                             window.parent.postMessage({ type: 'lesson_complete' }, '*');
-                            console.log('Lesson complete sent.');
+                            console.log('Lesson complete message sent.');
                         }
                     }
 
