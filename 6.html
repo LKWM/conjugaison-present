@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 6: Pratique de la conjugaison formelle (2)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* --- 기본 레이아웃 설정 --- */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            height: 100vh;
+            width: 100vw;
+            padding: 0.5rem;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #course-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 100%; 
+            max-height: 100%;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #slide-wrapper {
+            width: 100%;
+            flex: 1; /* 남은 공간 채움 */
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            background-color: white;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 텍스트 스타일 */
+        .title-text {
+            font-size: clamp(1.2rem, 4vh, 2rem);
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .body-text {
+            font-size: clamp(0.9rem, 2.5vh, 1.2rem);
+            color: #1a1a1a;
+            line-height: 1.5;
+            max-width: 90%;
+        }
+
+        /* 네비게이션 바 */
+        .nav-container {
+            padding: 0.5rem 1rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 60px;
+        }
+
+        .nav-button {
+            background-color: #38bdf8;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        .nav-button:hover { background-color: #0ea5e9; }
+        .nav-button:disabled { 
+            background-color: #cbd5e1; 
+            cursor: not-allowed; 
+            box-shadow: none; 
+            opacity: 0.7;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.3s ease; }
+
+        /* --- Vocab Practice Styles --- */
+        .vocab-card-container { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 4%; 
+            width: 100%; 
+            height: auto; 
+            flex-wrap: nowrap; 
+            padding: 1rem 0;
+        }
+        .vocab-card {
+            background-color: #f8fafc; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 0.75rem; 
+            width: 42%; 
+            max-width: 250px;
+            aspect-ratio: 1 / 1;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-size: clamp(1rem, 4vmin, 2rem); 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+        .image-card { background-size: cover; background-position: center; background-repeat: no-repeat; }
+        .vocab-card:hover { transform: scale(1.02); }
+
+        /* --- Speech Recognition Styles (Unified) --- */
+        .speech-container { 
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .mic-btn { 
+            background-color: #38bdf8;
+            color: white;
+            border: none; 
+            cursor: pointer; 
+            font-size: clamp(2rem, 5vh, 3rem); 
+            transition: all 0.2s ease-in-out; 
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: clamp(3.5rem, 8vh, 4.5rem);
+            height: clamp(3.5rem, 8vh, 4.5rem);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .mic-btn:hover { background-color: #0ea5e9; }
+        .mic-btn.recording { 
+            background-color: #ef4444; 
+            transform: scale(1.1); 
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4);
+        }
+        .mic-btn.loading {
+            background-color: #6b7280;
+            cursor: not-allowed;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        .speech-status { font-size: 0.9rem; color: #64748b; height: 1.5rem; line-height: 1.5rem; }
+        .feedback-message { font-size: 1rem; font-weight: 600; height: 2rem; line-height: 2rem; }
+        .attempts-text { font-size: 0.8rem; color: #94a3b8; }
+
+        /* --- Writing Quiz Styles --- */
+        .writing-quiz-container { display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%; max-width: 700px; }
+        .input-wrapper { display: flex; align-items: center; gap: 0.5rem; width: 90%; }
+        .input-display {
+            flex-grow: 1;
+            min-height: clamp(3rem, 8vh, 5rem); 
+            background-color: #f8fafc; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 0.75rem;
+            padding: 0.5rem; 
+            font-size: clamp(1.5rem, 4vw, 2.2rem); 
+            font-weight: bold; 
+            letter-spacing: 0.1em;
+            display: flex; align-items: center; justify-content: center; 
+            transition: all 0.2s;
+        }
+        .input-display.correct { border-color: #22c55e; background-color: #dcfce7; color: #166534; }
+        .input-display.incorrect { border-color: #ef4444; animation: shake 0.5s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        .keyboard { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; padding: 0.5rem 0; width: 100%; }
+        .key {
+            min-width: clamp(2.5rem, 10vw, 3.5rem); 
+            height: clamp(2.5rem, 10vw, 3.5rem); 
+            font-size: 1.2rem; font-weight: 600; border-radius: 0.5rem;
+            border: none; background-color: #fff; color: #334155;
+            border-bottom: 3px solid #cbd5e1; cursor: pointer; transition: all 0.1s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .key:active { transform: translateY(2px); border-bottom-width: 1px; }
+        .key.special { background-color: #e2e8f0; }
+        .submit-btn {
+            height: clamp(3rem, 8vh, 5rem); width: clamp(3rem, 8vh, 5rem); flex-shrink: 0; padding: 0;
+            background-color: #38bdf8; color: white; border-bottom-color: #0ea5e9;
+        }
+        .submit-btn:active { border-bottom-color: #0284c7; }
+
+        .hint-button {
+            background: none; border: 2px solid #fbbf24; color: #d97706; padding: 0.4rem 0.8rem; border-radius: 9999px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+        }
+        .hint-button:hover { background-color: #fef3c7; }
+
+        @media (max-width: 480px) {
+             body { padding: 0; }
+             #course-container { border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="course-container">
+        <div id="slide-wrapper"></div>
+        
+        <div class="nav-container">
+             <button id="prev-btn" class="nav-button">Précédent</button>
+             <div class="w-1/3 mx-2">
+                 <div class="progress-bar-container">
+                      <div id="progress-bar" class="progress-bar"></div>
+                 </div>
+             </div>
+             <button id="next-btn" class="nav-button">Suivant</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slideWrapper = document.getElementById('slide-wrapper');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+
+            // --- API Setup ---
+            const BASE_44_ORIGIN = "https://coreeno.base44.app"; 
+            const CLOVA_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/naverClovaSpeech';
+
+            // --- Sound Synthesis Setup ---
+            let sounds = {};
+            let soundsReady = false;
+
+            const initAudioSynth = async () => {
+                if (soundsReady) return;
+                try {
+                    await Tone.start();
+                    sounds = {
+                        nextPage: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+                        correct: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
+                        incorrect: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.3 } }).toDestination(),
+                        completion: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination(),
+                        keyPress: new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2, envelope: { attack: 0.001, decay: 0.1, sustain: 0 } }).toDestination(),
+                        koreanWord: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination()
+                    };
+                    sounds.completion.volume.value = -6;
+                    sounds.keyPress.volume.value = -10;
+                    soundsReady = true;
+                } catch(e) {
+                    console.error("Audio context error", e);
+                }
+            };
+
+            // --- TTS Engine ---
+            const synth = window.speechSynthesis;
+            let frenchVoice = null;
+
+            const speak = (text, lang = 'fr-FR') => {
+                if (synth.speaking) synth.cancel();
+                setTimeout(() => {
+                    const utterThis = new SpeechSynthesisUtterance(text);
+                    utterThis.lang = lang;
+                    if (lang === 'fr-FR' && frenchVoice) utterThis.voice = frenchVoice;
+                    utterThis.pitch = 1;
+                    utterThis.rate = 0.9;
+                    synth.speak(utterThis);
+                }, 100);
+            };
+
+            function loadFrenchVoice() {
+                const voices = synth.getVoices();
+                frenchVoice = voices.find(voice => voice.lang === 'fr-FR') || voices.find(voice => voice.lang.startsWith('fr-'));
+            }
+            if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadFrenchVoice;
+            loadFrenchVoice();
+
+
+            // --- Recording Setup (Naver Clova) ---
+            let mediaRecorder;
+            let audioChunks = [];
+            let isRecording = false;
+            let recordingTimeout;
+            let recognitionAttempts = {};
+
+            async function startRecording(pageData) {
+                if (isRecording) return;
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("Microphone non supporté.");
+                    return;
+                }
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    isRecording = true;
+                    audioChunks = [];
+                    
+                    let mimeType = 'audio/webm;codecs=opus';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = '';
+                    
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType }); 
+                    
+                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+
+                    mediaRecorder.onstart = () => {
+                        const micBtn = document.querySelector(`#mic-btn-${pageData.uniqueId}`);
+                        if(micBtn) micBtn.classList.add('recording');
+                        const statusEl = document.querySelector(`#speech-status-${pageData.uniqueId}`);
+                        if(statusEl) statusEl.textContent = "J'écoute...";
+                        
+                        clearTimeout(recordingTimeout);
+                        recordingTimeout = setTimeout(() => {
+                            if (isRecording) stopRecording(pageData);
+                        }, 10000);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        isRecording = false;
+                        clearTimeout(recordingTimeout);
+                        const micBtn = document.querySelector(`#mic-btn-${pageData.uniqueId}`);
+                        if(micBtn) {
+                            micBtn.classList.remove('recording');
+                            micBtn.classList.add('loading');
+                        }
+                        const statusEl = document.querySelector(`#speech-status-${pageData.uniqueId}`);
+                        if(statusEl) statusEl.textContent = "Évaluation...";
+
+                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = () => {
+                            handlePronunciationEvaluation(pageData, reader.result);
+                        };
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    mediaRecorder.start();
+                } catch (err) {
+                    console.error("Mic Error:", err);
+                    isRecording = false;
+                    alert("Erreur microphone.");
+                }
+            }
+
+            function stopRecording(pageData) {
+                clearTimeout(recordingTimeout);
+                if (mediaRecorder && isRecording) mediaRecorder.stop();
+            }
+
+            function normalizeText(text) {
+                if (typeof text !== 'string') return '';
+                return text.trim().replace(/[.,!?'\s]/g, '');
+            }
+
+            async function handlePronunciationEvaluation(pageData, audioBase64) {
+                const uniqueId = pageData.uniqueId;
+                const referenceText = pageData.target === 'conjugated' ? pageData.vocab.conjugated : pageData.vocab.kr;
+                const page = slideWrapper.querySelector('.slide.active');
+                const scoreEl = page.querySelector(`#speech-score-${uniqueId}`);
+                const statusEl = page.querySelector(`#speech-status-${uniqueId}`);
+                const micBtn = page.querySelector(`#mic-btn-${uniqueId}`);
+                const attemptsEl = page.querySelector(`#speech-attempts-${uniqueId}`);
+
+                if (recognitionAttempts[uniqueId] === undefined) recognitionAttempts[uniqueId] = 0;
+                recognitionAttempts[uniqueId]++;
+                const isFirstAttempt = recognitionAttempts[uniqueId] === 1;
+
+                try {
+                    const response = await fetch(CLOVA_API_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ audioBase64: audioBase64, languageCode: "Kor", referenceText: referenceText })
+                    });
+            
+                    if (!response.ok) throw new Error("API Error");
+                    
+                    const result = await response.json(); 
+                    const transcribedText = result.text || '';
+                    const score = (result.assessment ? result.assessment.pronunciation_score : 0) || 0;
+
+                    // 사용자 입력은 상태바에만 표시
+                    if (statusEl) statusEl.textContent = `"${transcribedText || '...'}"`;
+
+                    const isTextMatch = (normalizeText(transcribedText) === normalizeText(referenceText));
+                    const isScorePass = score >= 80; 
+                    
+                    // 정답 여부 및 점수 로직 개선
+                    if (isTextMatch) {
+                        if (isScorePass) {
+                            // [성공] 단어 일치 + 점수 80 이상
+                            if(scoreEl) {
+                                scoreEl.textContent = `Très bien ! (Score: ${score.toFixed(0)})`;
+                                scoreEl.className = 'feedback-message text-green-500';
+                            }
+                            if(micBtn) micBtn.disabled = true;
+                            nextBtn.disabled = false;
+                            updateNav(); 
+                            sounds.correct?.triggerAttackRelease('C5', '0.2s');
+                        } else {
+                            // [부분 성공] 단어 일치 + 점수 80 미만 (틀린 답 아님, 발음 부족)
+                            if (isFirstAttempt) {
+                                if(scoreEl) {
+                                    scoreEl.textContent = `Prononciation à améliorer. (Score: ${score.toFixed(0)}) Réessayez.`;
+                                    scoreEl.className = 'feedback-message text-orange-500';
+                                }
+                                if(attemptsEl) attemptsEl.textContent = "Tentatives : 1";
+                                sounds.incorrect?.triggerAttackRelease('A#2', '0.2s'); // 부분 실패음
+                                nextBtn.disabled = true;
+                            } else {
+                                if(scoreEl) {
+                                    scoreEl.textContent = `Prononciation à améliorer. (Score: ${score.toFixed(0)})`;
+                                    scoreEl.className = 'feedback-message text-orange-500';
+                                }
+                                if(attemptsEl) attemptsEl.textContent = "Tentatives : 0";
+                                if(micBtn) micBtn.disabled = true;
+                                nextBtn.disabled = false; // 진행 허용
+                                updateNav();
+                            }
+                        }
+                    } else {
+                        // [실패] 단어 불일치 (틀린 답) - 1/2차 상관없이 정답 표시
+                        if(scoreEl) {
+                            scoreEl.innerHTML = `Incorrect. (Score: ${score.toFixed(0)}) Réponse : <span class="text-blue-600">'${referenceText}'</span>`;
+                            scoreEl.className = 'feedback-message text-red-500';
+                        }
+
+                        if (isFirstAttempt) {
+                            if(attemptsEl) attemptsEl.textContent = "Tentatives : 1";
+                            sounds.incorrect?.triggerAttackRelease('A#2', '0.2s');
+                            nextBtn.disabled = true;
+                        } else {
+                            if(attemptsEl) attemptsEl.textContent = "Tentatives : 0";
+                            if(micBtn) micBtn.disabled = true;
+                            sounds.incorrect?.triggerAttackRelease('A#2', '0.2s');
+                            nextBtn.disabled = false;
+                            updateNav();
+                        }
+                    }
+
+                } catch (error) {
+                    console.error(error); 
+                    if(scoreEl) {
+                        scoreEl.textContent = `Erreur.`;
+                        scoreEl.className = 'feedback-message text-red-500';
+                    }
+                    if (recognitionAttempts[uniqueId] > 0) recognitionAttempts[uniqueId]--;
+                } finally {
+                    if(attemptsEl) attemptsEl.textContent = `Tentatives : ${Math.max(0, 2 - (recognitionAttempts[uniqueId] || 0))}`;
+                    if(micBtn) micBtn.classList.remove('loading');
+                }
+            }
+
+
+            // --- Course Content Data ---
+            const vocabulary = [
+                { id: 0, kr: '먹다', fr: 'Manger', image: 'https://static.wixstatic.com/media/699687_be8ea416444c4ebf88880a4a12471105~mv2.png', audio: 'https://static.wixstatic.com/mp3/699687_430b147143644a538566e98178eaf1c3.mp3', conjugated: '먹습니다', conjugated_audio: 'https://static.wixstatic.com/mp3/699687_4bb605a87aed40e59bb5f9a620112c95.mp3' },
+                { id: 1, kr: '춥다', fr: 'Faire froid', image: 'https://static.wixstatic.com/media/699687_2f0ad83afd32405087fa14ff42603899~mv2.png', audio: 'https://static.wixstatic.com/mp3/699687_44ea5d2318e841c4af555e0cfab3dcef.mp3', conjugated: '춥습니다', conjugated_audio: 'https://static.wixstatic.com/mp3/699687_4c70c0b6624843d0968ea049c8805612.mp3' },
+                { id: 2, kr: '찾다', fr: 'Chercher', image: 'https://static.wixstatic.com/media/699687_13e71f8db795459bac1b742834eac4ba~mv2.png', audio: 'https://static.wixstatic.com/mp3/699687_51aec296c1074a16857f0ed95541bbf3.mp3', conjugated: '찾습니다', conjugated_audio: 'https://static.wixstatic.com/mp3/699687_207b00f181a84db091e2c8d5ef5fe7c4.mp3' },
+                { id: 3, kr: '씻다', fr: 'Se laver', image: 'https://static.wixstatic.com/media/699687_1a47943880cd47e9b870dc18f38d9eda~mv2.png', audio: 'https://static.wixstatic.com/mp3/699687_48e5bd34e068452e81e72fe53774c71d.mp3', conjugated: '씻습니다', conjugated_audio: 'https://static.wixstatic.com/mp3/699687_bc0757a56b204ea8892e4eb55b38dc49.mp3' },
+            ];
+
+            const coursePages = [];
+            coursePages.push({ type: 'cover', title: 'Leçon 6 : Pratique de la conjugaison formelle (2)', text: 'Dans ce cours, nous allons nous entraîner à conjuguer les prédicats de base au présent du style formel (radical consonantique).' });
+            
+            let uniqueIdCounter = 0;
+            vocabulary.forEach(vocab => {
+                coursePages.push({ type: 'speech_practice', vocab: vocab, target: 'infinitive', uniqueId: `sp_${uniqueIdCounter++}` });
+                coursePages.push({ type: 'writing_quiz', vocab: vocab, target: 'infinitive', uniqueId: `wq_${uniqueIdCounter++}` });
+                coursePages.push({ type: 'speech_practice', vocab: vocab, target: 'conjugated', uniqueId: `sp_${uniqueIdCounter++}` });
+                coursePages.push({ type: 'writing_quiz', vocab: vocab, target: 'conjugated', uniqueId: `wq_${uniqueIdCounter++}` });
+            });
+            coursePages.push({ type: 'completion', text: 'Félicitations ! Apprenez un nouveau style dans la Leçon 7.' });
+
+            let currentPage = 0;
+            const shuffleArray = (array) => array.sort(() => Math.random() - 0.5);
+
+            const renderPage = () => {
+                const pageData = coursePages[currentPage];
+                let contentHTML = '';
+                const isInteractive = ['speech_practice', 'writing_quiz'].includes(pageData.type);
+                
+                nextBtn.textContent = 'Suivant';
+                delete nextBtn.dataset.mode;
+                if (isInteractive) nextBtn.disabled = true;
+
+                switch (pageData.type) {
+                    case 'cover':
+                        contentHTML = `<h1 class="title-text mb-6">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`;
+                        break;
+
+                    case 'speech_practice': {
+                        const vocab = pageData.vocab;
+                        const isConjugated = pageData.target === 'conjugated';
+                        const leftCardHTML = isConjugated ? 
+                            `<div class="vocab-card" data-audio="${vocab.audio}">${vocab.kr}</div>` : 
+                            `<div class="vocab-card image-card" style="background-image: url('${vocab.image}')" data-fr="${vocab.fr}"></div>`;
+                        const rightCardText = isConjugated ? vocab.conjugated : vocab.kr;
+                        const rightCardAudio = isConjugated ? vocab.conjugated_audio : vocab.audio;
+                        
+                        // 명확한 지시문 생성 (원형 vs 변형형)
+                        const instructionText = isConjugated 
+                            ? "Écoutez et répétez la forme formelle" 
+                            : "Écoutez et répétez l'infinitif";
+
+                        contentHTML = `
+                            <div class="flex flex-col justify-center items-center h-full w-full">
+                                <div class="flex-grow w-full flex justify-center items-center">
+                                    <div class="vocab-card-container">
+                                        ${leftCardHTML}
+                                        <div class="vocab-card" data-audio="${rightCardAudio}">${rightCardText}</div>
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0 w-full">
+                                    <div class="speech-container">
+                                        <h3 class="text-lg md:text-xl font-bold text-gray-700 mb-3 text-center">${instructionText}</h3>
+                                        <button id="mic-btn-${pageData.uniqueId}" class="mic-btn">🎙️</button>
+                                        <div id="speech-status-${pageData.uniqueId}" class="speech-status">Appuyez pour parler</div>
+                                        <div id="speech-score-${pageData.uniqueId}" class="feedback-message"></div>
+                                        <div id="speech-attempts-${pageData.uniqueId}" class="attempts-text">Tentatives : 2</div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        break;
+                    }
+
+                    case 'writing_quiz': {
+                        const vocab = pageData.vocab;
+                        const isConjugated = pageData.target === 'conjugated';
+                        const question = isConjugated ? `Conjuguez "${vocab.fr}" au présent formel.` : `Écrivez "${vocab.fr}" en coréen.`;
+                        const answer = isConjugated ? vocab.conjugated : vocab.kr;
+                        const hintAudio = isConjugated ? vocab.conjugated_audio : vocab.audio;
+                        
+                        const chars = [...new Set(answer.split(''))];
+                        const distractors = ['ㅂ','니','다','습','예','가','자','켜','요','어','먹','춥','찾','씻'];
+                        while(chars.length < 10) {
+                            const randomChar = distractors[Math.floor(Math.random() * distractors.length)];
+                            if (!chars.includes(randomChar)) chars.push(randomChar);
+                        }
+
+                        contentHTML = `
+                            <div class="writing-quiz-container">
+                                <p class="body-text text-center mb-2">${question}</p>
+                                <div class="input-wrapper">
+                                    <div id="input-display" class="input-display"></div>
+                                    <button class="submit-btn key" data-key="check">✓</button>
+                                </div>
+                                <div class="keyboard">
+                                    ${shuffleArray(chars).map(char => `<button class="key">${char}</button>`).join('')}
+                                    <button class="key special" data-key="del">⌫</button>
+                                </div>
+                                <button class="hint-button" data-audio="${hintAudio}">💡 Aide</button>
+                            </div>`;
+                        break;
+                    }
+
+                    case 'completion':
+                        contentHTML = `<h1 class="text-5xl font-bold text-sky-500 mb-4">🎉</h1><p class="body-text">${pageData.text}</p>`;
+                        break;
+                }
+
+                slideWrapper.innerHTML = `<div class="slide">${contentHTML}</div>`;
+                setTimeout(() => slideWrapper.querySelector('.slide').classList.add('active'), 10);
+                
+                attachEventListeners(pageData);
+                updateNav();
+            };
+
+            function attachEventListeners(pageData) {
+                // Card Click
+                slideWrapper.querySelectorAll('.vocab-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        initAudioSynth();
+                        const audioSrc = card.dataset.audio;
+                        const frText = card.dataset.fr;
+                        if (frText) { speak(frText); } 
+                        else if (audioSrc) { new Audio(audioSrc).play().catch(e => console.log(e)); } 
+                        else { Tone.start(); sounds.koreanWord.triggerAttackRelease('C4', '8n'); }
+                    });
+                });
+
+                // Speech Logic
+                if (pageData.type === 'speech_practice') {
+                    const micBtn = slideWrapper.querySelector(`#mic-btn-${pageData.uniqueId}`);
+                    if (micBtn) {
+                        micBtn.addEventListener('click', () => {
+                            if (micBtn.disabled || micBtn.classList.contains('loading')) return;
+                            isRecording ? stopRecording(pageData) : (initAudioSynth(), startRecording(pageData));
+                        });
+                    }
+                } 
+                // Quiz Logic
+                else if (pageData.type === 'writing_quiz') {
+                    const inputDisplay = document.getElementById('input-display');
+                    const answer = pageData.target === 'conjugated' ? pageData.vocab.conjugated : pageData.vocab.kr;
+
+                    slideWrapper.querySelectorAll('.key').forEach(key => {
+                        key.onclick = () => {
+                            initAudioSynth();
+                            sounds.keyPress.triggerAttackRelease('C2', '32n');
+                            const keyValue = key.dataset.key || key.textContent;
+
+                            if (keyValue === 'del') {
+                                inputDisplay.textContent = inputDisplay.textContent.slice(0, -1);
+                            } else if (keyValue === 'check') {
+                                if (inputDisplay.textContent === answer) {
+                                    inputDisplay.classList.remove('incorrect');
+                                    inputDisplay.classList.add('correct');
+                                    nextBtn.disabled = false;
+                                    updateNav();
+                                    sounds.correct.triggerAttackRelease('E5', '8n');
+                                    slideWrapper.querySelectorAll('.key').forEach(k => k.disabled = true);
+                                } else {
+                                    inputDisplay.classList.add('incorrect');
+                                    sounds.incorrect.triggerAttackRelease('C3', '4n');
+                                    setTimeout(() => inputDisplay.classList.remove('incorrect'), 500);
+                                }
+                            } else {
+                                inputDisplay.textContent += keyValue;
+                            }
+                        };
+                    });
+
+                    const hintBtn = slideWrapper.querySelector('.hint-button');
+                    if(hintBtn) {
+                        hintBtn.onclick = (e) => {
+                            const audioSrc = e.currentTarget.dataset.audio;
+                            if (audioSrc) new Audio(audioSrc).play().catch(err => console.log(err));
+                        };
+                    }
+                }
+            }
+
+            const updateNav = () => {
+                prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
+                const pageData = coursePages[currentPage];
+                const isInteractive = ['speech_practice', 'writing_quiz'].includes(pageData.type);
+
+                if (currentPage === coursePages.length - 2) {
+                    nextBtn.innerText = 'Terminer';
+                    nextBtn.style.visibility = 'visible';
+                } else if (currentPage === coursePages.length - 1) {
+                    nextBtn.style.visibility = 'hidden';
+                    prevBtn.style.visibility = 'hidden';
+                } else {
+                    nextBtn.innerText = 'Suivant';
+                    nextBtn.style.visibility = 'visible';
+                }
+
+                // 상태 유지 (이미 푼 문제는 활성화)
+                if (isInteractive && !nextBtn.disabled) { /* Keep enabled */ }
+                else if (!isInteractive) { nextBtn.disabled = false; }
+
+                const progress = ((currentPage + 1) / coursePages.length) * 100;
+                progressBar.style.width = `${progress}%`;
+            };
+
+            const goToNextPage = () => {
+                if (isRecording) stopRecording(coursePages[currentPage]);
+
+                if (currentPage < coursePages.length - 1) {
+                    if (currentPage === coursePages.length - 2) {
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'lesson_complete' }, '*');
+                            console.log('Lesson complete message sent.');
+                        }
+                    }
+
+                    currentPage++;
+                    renderPage();
+                    initAudioSynth();
+                    
+                    if (currentPage === coursePages.length - 1) {
+                        sounds.completion?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
+                    } else {
+                        sounds.nextPage?.triggerAttackRelease('C5', '8n');
+                    }
+                }
+            };
+            
+            const goToPrevPage = () => {
+                if (isRecording) stopRecording(coursePages[currentPage]);
+                if (currentPage > 0) {
+                    currentPage--;
+                    renderPage();
+                }
+            };
+
+            nextBtn.addEventListener('click', goToNextPage);
+            prevBtn.addEventListener('click', goToPrevPage);
+            
+            document.body.addEventListener('click', initAudioSynth, { once: true });
+            document.body.addEventListener('touchstart', initAudioSynth, { once: true });
+
+            renderPage();
+        });
+    </script>
+</body>
+</html>
