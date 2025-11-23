@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 8: Conjugaison au style poli et informel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Inter', sans-serif; background-color: #f0f4f8;
+            height: 100vh; width: 100vw; padding: 0.5rem; margin: 0;
+            overflow: hidden; display: flex; justify-content: center; align-items: center;
+        }
+        #course-container {
+            width: 100%; max-width: 1000px; height: 100%; max-height: 100%;
+            background-color: white; border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            overflow: hidden; display: flex; flex-direction: column; position: relative;
+        }
+        #slide-wrapper { width: 100%; flex: 1; position: relative; overflow: hidden; min-height: 0; }
+        .slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 1rem;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            background-color: white; overflow-y: auto;
+        }
+        .slide.active { opacity: 1; visibility: visible; }
+        
+        .title-text { font-size: clamp(1.2rem, 4vh, 2rem); font-weight: 700; color: #333; margin-bottom: 1rem; line-height: 1.2; }
+        .body-text { font-size: clamp(0.9rem, 2.5vh, 1.2rem); color: #1a1a1a; line-height: 1.5; max-width: 90%; }
+        
+        .nav-container {
+            padding: 0.5rem 1rem; background-color: #f9fafb; border-top: 1px solid #e5e7eb;
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; height: 60px;
+        }
+        .nav-button {
+            background-color: #38bdf8; color: white; border: none; padding: 0.5rem 1rem;
+            border-radius: 9999px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+            transition: background-color 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); white-space: nowrap; min-width: 80px;
+        }
+        .nav-button:hover { background-color: #0ea5e9; }
+        .nav-button:disabled { background-color: #cbd5e1; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
+        .progress-bar-container { width: 100%; height: 6px; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.3s ease; }
+
+        .quiz-container { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 1rem; max-height: 100%; overflow-y: auto; }
+        .quiz-grid { display: flex; flex-direction: column; gap: 0.8rem; width: 100%; max-width: 600px; }
+        .quiz-option-btn {
+            background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 0.75rem;
+            padding: 1rem; font-size: clamp(1rem, 2.5vh, 1.3rem); font-weight: 500;
+            cursor: pointer; transition: all 0.2s ease; text-align: center; width: 100%;
+        }
+        .quiz-option-btn:active { transform: scale(0.98); }
+        .quiz-option-btn.selected { background-color: #e0f2fe; border-color: #38bdf8; color: #0c4a6e; }
+        
+        .quiz-option-btn.correct-selection { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; }
+        .quiz-option-btn.incorrect-selection { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; animation: shake 0.5s; }
+        
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        @media (max-width: 480px) { body { padding: 0; } #course-container { border-radius: 0; } }
+    </style>
+</head>
+<body>
+    <div id="course-container">
+        <div id="slide-wrapper"></div>
+        <div class="nav-container">
+             <button id="prev-btn" class="nav-button">Précédent</button>
+             <div class="w-1/3 mx-2"><div class="progress-bar-container"><div id="progress-bar" class="progress-bar"></div></div></div>
+             <button id="next-btn" class="nav-button">Suivant</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slideWrapper = document.getElementById('slide-wrapper');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+
+            const sounds = {
+                nextPage: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+                correct: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
+                incorrect: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.3 } }).toDestination(),
+                completion: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination(),
+            };
+            sounds.completion.volume.value = -6;
+
+            const courseData = [
+                { type: 'cover', title: 'Les styles poli et informel', text: "Dans ce cours, nous apprendrons la différence entre les styles poli et informel, ainsi que leurs règles de conjugaison." },
+                // [복구] 텍스트 전체 복원 및 strong 태그 스타일 확인
+                { type: 'definition', title: 'Introduction', text: "Le style non formel se divise en 'poli' et 'informel'. Bien que les deux puissent être utilisés dans des situations non officielles, l'impression donnée à l'interlocuteur est différente." },
+                { type: 'definition', title: 'Langage Poli (존댓말)', text: "Le langage <strong class='text-sky-600'>poli</strong> peut être utilisé quelle que soit la relation avec l'interlocuteur, qu'il soit de rang supérieur ou inférieur. Dans les conversations quotidiennes, il est courant de mélanger les styles formel et poli. Le style poli se termine toujours par <strong class='text-red-500'>-요</strong>." },
+                { type: 'definition', title: 'Langage Informel (반말)', text: "Le langage <strong class='text-sky-600'>informel</strong> peut être utilisé avec des personnes très proches, des personnes beaucoup plus jeunes, ou des enfants. Faites attention à ne pas l'utiliser sans discernement dans des situations officielles ou avec des personnes peu proches. Il est conseillé de demander l'accord préalable des personnes du même âge ou plus âgées." },
+                {
+                    type: 'situation_quiz',
+                    situation: 'Un médecin parle à un patient.',
+                    options: ['Langage formel', 'Langage poli', 'Langage informel'],
+                    answers: ['Langage formel', 'Langage poli']
+                },
+                {
+                    type: 'situation_quiz',
+                    situation: 'Un parent parle à son enfant.',
+                    options: ['Langage formel', 'Langage poli', 'Langage informel'],
+                    answers: ['Langage informel']
+                },
+                 {
+                    type: 'situation_quiz',
+                    situation: 'Un enfant parle à son professeur.',
+                    options: ['Langage formel', 'Langage poli', 'Langage informel'],
+                    answers: ['Langage formel', 'Langage poli']
+                },
+                {
+                    type: 'situation_quiz',
+                    situation: 'Vous parlez à un ami proche de la même classe.',
+                    options: ['Langage formel', 'Langage poli', 'Langage informel'],
+                    answers: ['Langage informel']
+                },
+                {
+                    type: 'situation_quiz',
+                    situation: "Un vendeur s'adresse à un client.",
+                    options: ['Langage formel', 'Langage poli', 'Langage informel'],
+                    answers: ['Langage formel', 'Langage poli']
+                },
+                 {
+                    type: 'situation_quiz',
+                    situation: 'Un présentateur de nouvelles annonce les informations.',
+                    options: ['Langage formel', 'Langage poli', 'Langage informel'],
+                    answers: ['Langage formel']
+                },
+                { type: 'completion', text: 'Félicitations ! Passez à la Leçon 9 pour apprendre les méthodes de conjugaison.' }
+            ];
+
+            let currentPage = 0;
+
+            const renderPage = () => {
+                const pageData = courseData[currentPage];
+                let contentHTML = '';
+                
+                nextBtn.textContent = 'Suivant';
+                delete nextBtn.dataset.mode;
+                nextBtn.disabled = pageData.type === 'situation_quiz';
+
+                switch (pageData.type) {
+                    case 'cover':
+                        contentHTML = `<h1 class="title-text mb-6">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`; break;
+                    case 'definition':
+                        contentHTML = `<h2 class="title-text mb-4">${pageData.title}</h2><p class="body-text">${pageData.text}</p>`; break;
+                    case 'situation_quiz':
+                        nextBtn.textContent = 'Vérifier';
+                        // [수정] 퀴즈 제목을 'Quel style utiliser ?' 에서 'Choisissez le(s) style(s) approprié(s)'로 변경하여 복수 선택 가능성 명시
+                        contentHTML = `
+                            <div class="quiz-container">
+                                <h2 class="title-text mb-2 text-center">Choisissez le(s) style(s) approprié(s)</h2>
+                                <p class="body-text mb-6 bg-gray-100 px-4 py-3 rounded-xl w-full text-center"><strong>Situation :</strong><br>${pageData.situation}</p>
+                                <div class="quiz-grid">
+                                    ${pageData.options.map(opt => `<button class="quiz-option-btn" data-value="${opt}">${opt}</button>`).join('')}
+                                </div>
+                            </div>`;
+                        break;
+                    case 'completion':
+                        contentHTML = `<h1 class="text-5xl font-bold text-sky-500 mb-4">🎉</h1><p class="body-text">${pageData.text}</p>`; break;
+                }
+
+                slideWrapper.innerHTML = `<div class="slide">${contentHTML}</div>`;
+                setTimeout(() => slideWrapper.querySelector('.slide').classList.add('active'), 10);
+                
+                attachEventListeners(pageData);
+                updateNav();
+            };
+            
+            function attachEventListeners(pageData) {
+                if (pageData.type === 'situation_quiz') {
+                    const buttons = slideWrapper.querySelectorAll('.quiz-option-btn');
+                    buttons.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            if (nextBtn.dataset.mode !== 'retry') {
+                                btn.classList.toggle('selected');
+                                nextBtn.disabled = false;
+                            }
+                        });
+                    });
+                }
+            }
+
+            const updateNav = () => {
+                prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
+                if (currentPage === courseData.length - 2) { if (nextBtn.dataset.mode !== 'retry') nextBtn.innerText = 'Terminer'; }
+                if (currentPage === courseData.length - 1) { nextBtn.style.visibility = 'hidden'; prevBtn.style.visibility = 'hidden'; } else { nextBtn.style.visibility = 'visible'; }
+                const progress = ((currentPage + 1) / courseData.length) * 100; progressBar.style.width = `${progress}%`;
+            };
+
+            const goToNextPage = () => {
+                const pageData = courseData[currentPage];
+                if (pageData.type === 'situation_quiz') {
+                    if (nextBtn.dataset.mode === 'retry') {
+                        const buttons = slideWrapper.querySelectorAll('.quiz-option-btn');
+                        buttons.forEach(btn => { btn.classList.remove('selected', 'correct-selection', 'incorrect-selection'); btn.disabled = false; });
+                        nextBtn.textContent = 'Vérifier'; nextBtn.disabled = true; delete nextBtn.dataset.mode; return;
+                    }
+                    const selectedButtons = Array.from(slideWrapper.querySelectorAll('.quiz-option-btn.selected'));
+                    const selectedValues = selectedButtons.map(btn => btn.dataset.value);
+                    const correctAnswers = pageData.answers;
+                    
+                    // 정답 체크 (모든 정답을 포함하고, 오답이 없어야 함)
+                    const hasIncorrectSelection = selectedValues.some(val => !correctAnswers.includes(val));
+                    const hasAllCorrectAnswers = correctAnswers.every(val => selectedValues.includes(val));
+                    const isFullyCorrect = !hasIncorrectSelection && hasAllCorrectAnswers;
+
+                    if (isFullyCorrect) {
+                        Tone.start(); 
+                        if (currentPage === courseData.length - 2) { if (window.parent) { window.parent.postMessage({ type: 'lesson_complete' }, '*'); console.log('Lesson complete message sent.'); } }
+                        currentPage++; renderPage();
+                        if (currentPage === courseData.length - 1) { sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5"); } else { sounds.correct.triggerAttackRelease('E5', '8n'); }
+                    } else {
+                        Tone.start(); sounds.incorrect.triggerAttackRelease('C3', '4n');
+                        selectedButtons.forEach(btn => {
+                            if (correctAnswers.includes(btn.dataset.value)) { btn.classList.add('correct-selection'); } 
+                            else { btn.classList.add('incorrect-selection'); }
+                        });
+                        const allButtons = slideWrapper.querySelectorAll('.quiz-option-btn'); allButtons.forEach(btn => btn.disabled = true);
+                        nextBtn.textContent = 'Réessayer'; nextBtn.dataset.mode = 'retry';
+                    }
+                    return;
+                }
+                if (currentPage < courseData.length - 1) {
+                    currentPage++; renderPage(); Tone.start();
+                    if (currentPage === courseData.length - 1) { sounds.completion.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5", Tone.now()); } else { sounds.nextPage.triggerAttackRelease('C5', '8n'); }
+                }
+            };
+            
+            const goToPrevPage = () => { if (currentPage > 0) { currentPage--; renderPage(); } };
+
+            nextBtn.addEventListener('click', goToNextPage);
+            prevBtn.addEventListener('click', goToPrevPage);
+            renderPage();
+        });
+    </script>
+</body>
+</html>
