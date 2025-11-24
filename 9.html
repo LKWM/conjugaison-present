@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 9: La conjugaison du groupe 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* --- 레이아웃 엔진 --- */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            height: 100vh;
+            width: 100vw;
+            padding: 0.5rem;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #course-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 100%;
+            max-height: 100%;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #slide-wrapper {
+            width: 100%;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out;
+            background-color: white;
+            overflow-y: auto;
+            gap: 1.5rem;
+        }
+
+        .slide.active { opacity: 1; visibility: visible; }
+
+        /* --- 텍스트 스타일 --- */
+        .title-text { 
+            font-size: clamp(1.4rem, 4vh, 2.5rem); 
+            font-weight: 700; 
+            color: #333; 
+            line-height: 1.2;
+            margin: 0;
+        }
+        .body-text { 
+            font-size: clamp(1rem, 2.8vh, 1.5rem); 
+            color: #1a1a1a; 
+            line-height: 1.6; 
+            max-width: 90%; 
+            margin: 0 auto;
+        }
+        .terminaison { color: #ef4444; font-weight: 600; }
+        .radical { color: #3b82f6; font-weight: 600; }
+        .highlight { color: #0ea5e9; font-weight: 600; }
+
+        /* --- 하단 네비게이션 --- */
+        .nav-footer {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            height: auto;
+            min-height: 70px;
+        }
+
+        .nav-button {
+            background-color: #38bdf8; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 9999px;
+            font-size: clamp(0.8rem, 2vh, 1rem); cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            white-space: nowrap;
+        }
+        .nav-button:hover { background-color: #0ea5e9; transform: translateY(-2px); }
+        
+        .progress-wrapper { width: 33.333333%; }
+        .progress-bar-container { width: 100%; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; height: 10px; }
+        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.5s ease; }
+
+        /* --- 콘텐츠 스타일 --- */
+        .footnote { font-size: clamp(0.7rem, 1.8vh, 1rem); color: #64748b; font-weight: normal; margin-top: 4px; }
+        
+        .word-card-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; width: 100%; }
+        .word-card {
+             background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 0.75rem;
+             padding: 0.8rem 1.2rem; font-size: clamp(1.1rem, 3vh, 1.6rem); font-weight: 600;
+             cursor: pointer; transition: all 0.2s ease;
+             display: flex; flex-direction: column; align-items: center;
+             min-width: 80px;
+        }
+        .word-card:hover { transform: translateY(-2px); border-color: #38bdf8; }
+
+        .conjugation-formula-row {
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+            gap: 0.8rem; font-size: clamp(1.1rem, 3vh, 1.8rem); font-weight: bold;
+            width: 100%;
+        }
+        .conjugation-formula-row span { margin: 0 0.2rem; }
+
+        /* --- 레이아웃 수정 (이미지 제거 후 중앙 정렬) --- */
+        .content-layout {
+            display: flex; 
+            justify-content: center;
+            width: 100%; 
+        }
+
+        .flowchart-container {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 1.5rem; width: 100%; max-width: 600px;
+        }
+        .flowchart-decomposition {
+            display: flex; align-items: center; gap: 0.8rem;
+            font-size: clamp(1.1rem, 3vh, 1.8rem); font-weight: bold;
+            padding: 1rem 1.5rem; background-color: #f9fafb;
+            border-radius: 0.75rem; border: 1px solid #f3f4f6;
+            flex-wrap: wrap; justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            width: 100%;
+        }
+        .flowchart-element { display: flex; flex-direction: column; align-items: center; }
+        .flowchart-results { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+        
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            .slide { padding: 1rem; gap: 1rem; }
+            .body-text { font-size: 1.1rem; }
+            .word-card { padding: 0.5rem 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="course-container">
+        <div id="slide-wrapper"></div>
+        
+        <div class="nav-footer">
+             <button id="prev-btn" class="nav-button">Précédent</button>
+             <div class="progress-wrapper">
+                 <div class="progress-bar-container"><div id="progress-bar" class="progress-bar"></div></div>
+             </div>
+             <button id="next-btn" class="nav-button">Suivant</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slideWrapper = document.getElementById('slide-wrapper');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+
+            // --- Tone.js & Sound ---
+            let sounds = {};
+            let soundsReady = false;
+
+            const initAudioSynth = async () => {
+                if (soundsReady) return;
+                try {
+                    await Tone.start();
+                    sounds = {
+                        nextPage: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+                        completion: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination(),
+                        koreanWord: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination()
+                    };
+                    sounds.completion.volume.value = -6;
+                    soundsReady = true;
+                } catch(e) {
+                    console.error("Audio error", e);
+                }
+            };
+            
+            const synth = window.speechSynthesis;
+            const speak = (text, lang = 'fr-FR') => {
+                if (synth.speaking) synth.cancel();
+                setTimeout(() => {
+                    const utterThis = new SpeechSynthesisUtterance(text);
+                    utterThis.lang = lang;
+                    utterThis.rate = 0.9;
+                    synth.speak(utterThis);
+                }, 100);
+            };
+
+            // --- Data Content (이미지 제거) ---
+            const vocabulary = {
+                '가다': { fr: 'Aller', audio: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3', formal: '갑니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_6b26d193cdf44c17b952a7486b0e3863.mp3', poli: '가요', poli_audio: 'https://static.wixstatic.com/mp3/699687_f886419b176847058c7efe3589e5067a.mp3', informel: '가', informel_audio: 'https://static.wixstatic.com/mp3/699687_8d343d7a70b84b98b9421c968d9c9cfb.mp3' },
+                '자다': { fr: 'Dormir', audio: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3', formal: '잡니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_6c93d6a3727e4beb9c599b3840f67c82.mp3', poli: '자요', poli_audio: 'https://static.wixstatic.com/mp3/699687_46f8ba4017f34d4bac425b61bad08347.mp3', informel: '자', informel_audio: 'https://static.wixstatic.com/mp3/699687_87c52a0bb4794f2bb900ddda55bbcd11.mp3' },
+                '찾다': { fr: 'Chercher', audio: 'https://static.wixstatic.com/mp3/699687_51aec296c1074a16857f0ed95541bbf3.mp3', formal: '찾습니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_207b00f181a84db091e2c8d5ef5fe7c4.mp3', poli: '찾아요', poli_audio: 'https://static.wixstatic.com/mp3/699687_1e886c2a31e640d28accf8d90d03a510.mp3', informel: '찾아', informel_audio: 'https://static.wixstatic.com/mp3/699687_aa93647884e7413aa0b1a64d83aa7747.mp3' },
+                '보다': { fr: 'Regarder', audio: 'https://static.wixstatic.com/mp3/699687_78c3059cb0464d1ab6f22cc4cbe38c7d.mp3', formal: '봅니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_b378cf2f072a4151b0b8cd58d9f22d46.mp3', poli: '봐요', poli_audio: 'https://static.wixstatic.com/mp3/699687_38c92bfcf24d4e6e9aa92624bc9823cb.mp3', informel: '봐', informel_audio: 'https://static.wixstatic.com/mp3/699687_1080538876c64f46a870c78c69491145.mp3' },
+                '오다': { fr: 'Venir', audio: 'https://static.wixstatic.com/mp3/699687_15f3d197595e47baa574d7b02aa6fd00.mp3', formal: '옵니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_2384c19ddf3c473bab92680f40f3b36d.mp3', poli: '와요', poli_audio: 'https://static.wixstatic.com/mp3/699687_161ccab046ad4dc89be02b48ed5733e9.mp3', informel: '와', informel_audio: 'https://static.wixstatic.com/mp3/699687_6d93d483d675461b97d28a4aac401d94.mp3' },
+                '만나다': { fr: 'Rencontrer', audio: 'https://static.wixstatic.com/mp3/699687_fd7387bd3d7447c495b9157062848e5f.mp3', formal: '만납니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_e30ea5b62dde46619a8a1e5098af9184.mp3', poli: '만나요', poli_audio: 'https://static.wixstatic.com/mp3/699687_4bd956409f7e43619ed7c9873a03c3fe.mp3', informel: '만나', informel_audio: 'https://static.wixstatic.com/mp3/699687_2e3e54bf53384cdf9b3d4ff03e03e0cf.mp3' }
+            };
+
+            const poli_rules_data = [
+                { rule_text: "Si la dernière lettre est déjà <span class='highlight'>ㅏ</span>, il n'est pas nécessaire de répéter <span class='highlight'>ㅏ</span>.", word: '가다', radical: '가', terminaison_info: "(<span class='terminaison'>ㅏ</span> : omis)", final_radical: '가' },
+                { rule_text: "Si la dernière lettre est déjà <span class='highlight'>ㅏ</span>...", word: '자다', radical: '자', terminaison_info: "(<span class='terminaison'>ㅏ</span> : omis)", final_radical: '자' },
+                { rule_text: "Si la dernière lettre est déjà <span class='highlight'>ㅏ</span>...", word: '만나다', radical: '만나', terminaison_info: "(<span class='terminaison'>ㅏ</span> : omis)", final_radical: '만나' },
+                { rule_text: "Si la dernière lettre est <span class='highlight'>ㅗ</span>, le <span class='highlight'>ㅗ</span> et le <span class='highlight'>ㅏ</span> fusionnent pour former <span class='highlight'>ㅘ</span>.", word: '보다', radical: '보', terminaison_info: "+ <span class='terminaison'>ㅏ</span>", final_radical: '봐' },
+                { rule_text: "Si la dernière lettre est <span class='highlight'>ㅗ</span>...", word: '오다', radical: '오', terminaison_info: "+ <span class='terminaison'>ㅏ</span>", final_radical: '와' },
+                { rule_text: "S'il y a une consonne finale (받침), on ajoute <span class='highlight'>아</span>.", word: '찾다', radical: '찾', terminaison_info: "+ <span class='terminaison'>아</span>", final_radical: '찾아' },
+            ];
+            
+            const courseData = [
+                { type: 'cover', title: 'Conjugaison des prédicats du groupe 1', text: "Dans ce cours, nous allons apprendre les règles de conjugaison des prédicats du groupe 1 au style poli/informel." },
+                { 
+                    type: 'group_review', 
+                    text: "Comme nous l'avons appris dans la Leçon 7, les prédicats sont classés en <span class='highlight'>Groupe 1</span> et <span class='highlight'>Groupe 2</span> en fonction de la dernière voyelle de leur radical. Le Groupe 1 concerne les cas où la dernière voyelle du radical est <span class='highlight'>ㅏ</span> ou <span class='highlight'>ㅗ</span>.",
+                    examples: ['가다', '자다', '찾다', '보다', '오다', '만나다']
+                },
+                { type: 'formal_review', text: "Pour conjuguer au <span class='highlight'>style formel</span>, on ajoute <span class='highlight'>-ㅂ니다</span> si le radical n'a pas de consonne finale (받침), et <span class='highlight'>-습니다</span> s'il en a une.", examples: ['가다', '자다', '보다'] },
+                { type: 'formal_review', text: "Pour conjuguer au <span class='highlight'>style formel</span>...", examples: ['오다', '만나다', '찾다'] },
+                { type: 'definition', text: "Pour les prédicats du <span class='highlight'>Groupe 1</span>, on conjugue au <span class='highlight'>langage poli/informel</span> en ajoutant <span class='highlight'>ㅏ</span> au radical. Selon la dernière lettre, ce <span class='highlight'>ㅏ</span> peut être omis, fusionné ou transformé en <span class='highlight'>아</span>.<br>Le langage poli se termine en ajoutant <span class='highlight'>요</span>." },
+                ...poli_rules_data.map(rule => ({ type: 'poli_conjugation_rule', ...rule })),
+                { type: 'completion', text: "Félicitations ! Passez à la Leçon 10 pour vous exercer sur la conjugaison des prédicats du groupe 1." }
+            ];
+
+            let currentPage = 0;
+
+            const renderPage = () => {
+                const pageData = courseData[currentPage];
+                let contentHTML = '';
+
+                switch (pageData.type) {
+                    case 'cover':
+                        contentHTML = `<h1 class="title-text">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`;
+                        break;
+                    case 'group_review':
+                        contentHTML = `
+                            <p class="body-text">${pageData.text}</p>
+                            <div class="word-card-row">
+                                ${pageData.examples.map(word => `<div class="word-card" data-word="${word}">${word}<div class="footnote">(${vocabulary[word].fr})</div></div>`).join('')}
+                            </div>`;
+                        break;
+                    case 'formal_review':
+                        const examplesHTML = pageData.examples.map(word => {
+                            const vocab = vocabulary[word];
+                            const radical = word.replace(/다$/, '');
+                            const lastChar = radical.charCodeAt(radical.length - 1);
+                            const hasBatchim = (lastChar - 0xAC00) % 28 > 0;
+                            const terminaison = hasBatchim ? '습니다' : 'ㅂ니다';
+                            
+                            return `
+                                <div class="conjugation-formula-row">
+                                    <div class="word-card" data-word="${word}">${word}<span class="footnote">(infinitif: ${vocab.fr})</span></div>
+                                    <span class="text-gray-400">→</span>
+                                    <span>${radical}</span>
+                                    <span>+</span>
+                                    <span>${terminaison}</span>
+                                    <span>=</span>
+                                    <div class="word-card" data-audio="${vocab.formal_audio}">
+                                        ${vocab.formal}
+                                        <div class="footnote">(conjugaison formelle)</div>
+                                    </div>
+                                </div>`;
+                        }).join('');
+                        contentHTML = `<p class="body-text">${pageData.text}</p><div class="flex flex-col gap-2 w-full mt-2">${examplesHTML}</div>`;
+                        break;
+                    case 'definition':
+                         contentHTML = `<p class="body-text">${pageData.text}</p>`;
+                         break;
+                    case 'poli_conjugation_rule':
+                        const vocab = vocabulary[pageData.word];
+                        // 이미지 카드 및 컨테이너 제거, 텍스트와 플로우차트만 중앙 정렬
+                        contentHTML = `
+                            <p class="body-text" style="margin-bottom: 0;">${pageData.rule_text}</p>
+                            <div class="content-layout">
+                                <div class="flowchart-container">
+                                    <div class="word-card" data-word="${pageData.word}">${pageData.word}<div class="footnote">(infinitif: ${vocab.fr})</div></div>
+                                    <div class="flowchart-decomposition">
+                                        <div class="flowchart-element">
+                                            <span class="radical">${pageData.radical}</span>
+                                            <div class="footnote">(radical)</div>
+                                        </div>
+                                        <span>${pageData.terminaison_info.startsWith('+') ? '' : '+'}</span>
+                                        <div class="flowchart-element">
+                                            <span>${pageData.terminaison_info.replace('+ ', '')}</span>
+                                        </div>
+                                        <span>=</span>
+                                        <div class="flowchart-element">
+                                            <strong>${pageData.final_radical}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="flowchart-results">
+                                        <div class="word-card" data-audio="${vocab.poli_audio}">${vocab.poli}<div class="footnote">Conjugaison polie</div></div>
+                                        <div class="word-card" data-audio="${vocab.informel_audio}">${vocab.informel}<div class="footnote">Conjugaison informelle</div></div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        break;
+                    case 'completion':
+                        contentHTML = `<h1 class="text-5xl font-bold text-sky-500 mb-4">🎉</h1><p class="body-text">${pageData.text}</p>`;
+                        break;
+                }
+
+                slideWrapper.innerHTML = `<div class="slide">${contentHTML}</div>`;
+                setTimeout(() => slideWrapper.querySelector('.slide').classList.add('active'), 10);
+                
+                attachEventListeners();
+                updateNav();
+            };
+            
+            function attachEventListeners() {
+                 slideWrapper.querySelectorAll('.word-card').forEach(card => {
+                    card.onclick = (e) => {
+                        e.stopPropagation();
+                        initAudioSynth();
+                        const word = e.currentTarget.dataset.word;
+                        const audioSrc = vocabulary[word]?.audio || e.currentTarget.dataset.audio;
+                        if (audioSrc && audioSrc !== '') {
+                            new Audio(audioSrc).play().catch(err => console.error(`Audio error: ${err}`));
+                        } else {
+                            sounds.koreanWord?.triggerAttackRelease('A4', '8n');
+                        }
+                    };
+                });
+                // poli-image-card 이벤트 리스너 제거됨
+            }
+
+            const updateNav = () => {
+                const progress = ((currentPage + 1) / courseData.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
+                
+                if (currentPage === courseData.length - 1) {
+                    nextBtn.style.visibility = 'hidden';
+                } else {
+                    nextBtn.style.visibility = 'visible';
+                }
+            };
+
+            const goToNextPage = () => {
+                initAudioSynth();
+                if (currentPage < courseData.length - 1) {
+                    if (currentPage === courseData.length - 2) {
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'lesson_complete' }, '*');
+                        }
+                    }
+
+                    currentPage++;
+                    renderPage();
+                    
+                    if (currentPage === courseData.length - 1) {
+                        sounds.completion?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
+                    } else {
+                        sounds.nextPage?.triggerAttackRelease('C5', '8n');
+                    }
+                }
+            };
+            
+            const goToPrevPage = () => {
+                if (currentPage > 0) { currentPage--; renderPage(); }
+            };
+
+            nextBtn.addEventListener('click', goToNextPage);
+            prevBtn.addEventListener('click', goToPrevPage);
+            
+            document.body.addEventListener('click', initAudioSynth, { once: true });
+            document.body.addEventListener('touchstart', initAudioSynth, { once: true });
+
+            renderPage();
+        });
+    </script>
+</body>
+</html>
