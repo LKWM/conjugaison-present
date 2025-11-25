@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leçon 10: Pratique de la conjugaison du groupe 1 (1)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* --- 레이아웃 엔진 --- */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            height: 100vh;
+            width: 100vw;
+            padding: 0.5rem;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #course-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 100%;
+            max-height: 100%;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #slide-wrapper {
+            width: 100%;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out;
+            background-color: white;
+            overflow-y: auto;
+            gap: 1.5rem;
+        }
+
+        .slide.active { opacity: 1; visibility: visible; }
+
+        /* --- 텍스트 스타일 --- */
+        .title-text { font-size: clamp(1.4rem, 4vh, 2.5rem); font-weight: 700; color: #333; line-height: 1.2; margin: 0; }
+        .body-text { font-size: clamp(1rem, 2.5vh, 1.4rem); color: #1a1a1a; line-height: 1.5; max-width: 90%; margin: 0 auto; }
+        .footnote { font-size: clamp(0.7rem, 1.8vh, 1rem); color: #64748b; font-weight: normal; margin-top: 4px; }
+
+        /* --- 하단 네비게이션 --- */
+        .nav-footer {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            height: auto;
+            min-height: 70px;
+        }
+
+        .nav-button {
+            background-color: #38bdf8; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 9999px;
+            font-size: clamp(0.8rem, 2vh, 1rem); cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            white-space: nowrap;
+        }
+        .nav-button:hover { background-color: #0ea5e9; transform: translateY(-2px); }
+        .nav-button:disabled { background-color: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.7; }
+        
+        .progress-wrapper { width: 33.333333%; }
+        .progress-bar-container { width: 100%; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; height: 10px; }
+        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.5s ease; }
+
+        /* --- Overview Styles --- */
+        .overview-layout { 
+            display: flex; align-items: center; justify-content: center; 
+            gap: 2rem; width: 100%; 
+        }
+        .overview-left { display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 40%; }
+        .overview-right { display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 40%; }
+        .overview-arrow { font-size: clamp(2rem, 5vh, 3rem); color: #cbd5e1; }
+        .overview-card {
+            background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 1rem; padding: 0.8rem 1.2rem;
+            font-size: clamp(1rem, 2.5vh, 1.4rem); font-weight: 600; cursor: pointer; transition: all 0.2s;
+            width: 100%; display: flex; flex-direction: column; align-items: center;
+        }
+        .overview-card:hover { transform: scale(1.02); border-color: #38bdf8; }
+        .overview-image-card { aspect-ratio: 1/1; max-width: 150px; background-size: cover; background-position: center; }
+
+        /* --- Quiz & Input Styles --- */
+        .quiz-container { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; width: 100%; max-width: 600px; }
+        .input-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
+        .input-display {
+            flex-grow: 1; min-height: clamp(3rem, 8vh, 4rem); background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 1rem;
+            padding: 0.5rem; font-size: clamp(1.5rem, 4vh, 2rem); font-weight: bold; letter-spacing: 0.1em;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .input-display.correct { border-color: #22c55e; background-color: #dcfce7; color: #166534; }
+        .input-display.incorrect { border-color: #ef4444; animation: shake 0.5s; }
+        
+        /* 수정된 키보드 스타일 */
+        .keyboard { 
+            display: flex; flex-direction: column; gap: 0.5rem; width:100%; 
+            background-color: #e2e8f0; /* 배경색 추가 (키 가시성 확보) */
+            padding: 0.8rem; 
+            border-radius: 0.8rem;
+        }
+        .key-row { display: flex; justify-content: center; gap: 0.3rem; }
+        .key {
+            width: clamp(2rem, 8vw, 3rem); height: clamp(2.5rem, 9vw, 3.5rem); 
+            font-size: clamp(1rem, 2vh, 1.2rem); font-weight: 600; border-radius: 0.5rem;
+            border: 1px solid #cbd5e1; /* 테두리 추가 */
+            border-bottom-width: 3px;
+            background-color: #ffffff; /* 흰색 배경 명시 */
+            color: #334155;
+            cursor: pointer; 
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .key:active { transform: translateY(2px); border-bottom-width: 1px; }
+        .key.special { background-color: #d1d5db; } /* 특수키 색상 조금 더 진하게 */
+        
+        .submit-btn { width: clamp(3rem, 10vw, 4rem); background-color: #38bdf8; color: white; border-color: #0ea5e9; border-bottom-width: 4px;}
+        
+        .hint-button {
+            background: none; border: 2px solid #fbbf24; color: #d97706; padding: 0.4rem 0.8rem; border-radius: 9999px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+        }
+        
+        /* --- Mic & Speech Styles --- */
+        #mic-btn { 
+            background-color: #38bdf8; color: white; border: none; border-radius: 50%;
+            width: clamp(3.5rem, 10vh, 5rem); height: clamp(3.5rem, 10vh, 5rem);
+            font-size: clamp(1.5rem, 4vh, 2.5rem); cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s; 
+            display: flex; justify-content: center; align-items: center;
+        }
+        #mic-btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+        #mic-btn.recording { background-color: #ef4444; transform: scale(1.1); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4); }
+        #mic-btn.loading { background-color: #6b7280; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        .speech-status { font-size: 0.9rem; color: #64748b; min-height: 1.5rem; }
+
+        /* --- MCQ --- */
+        .mcq-title { font-size: clamp(1.1rem, 3vh, 1.6rem); font-weight: 700; color: #333; margin-bottom: 1rem; }
+        .mcq-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 1rem; width: 100%; max-width: 600px;
+        }
+        .mcq-option {
+            background-color: #f8fafc; border: 2px solid #e2e8f0;
+            border-radius: 0.75rem; padding: 1rem; font-size: clamp(1rem, 2.5vh, 1.3rem);
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .mcq-option:not(.disabled):hover { border-color: #38bdf8; }
+        .mcq-option.correct { background-color: #dcfce7; border-color: #22c55e; color: #166534; }
+        .mcq-option.incorrect { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .mcq-option.disabled { cursor: not-allowed; opacity: 0.7; }
+
+        @media (max-width: 640px) {
+            .overview-layout { flex-direction: column; gap: 1rem; }
+            .overview-left, .overview-right { width: 100%; }
+            .overview-arrow { transform: rotate(90deg); font-size: 2rem; }
+            .mcq-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="course-container">
+        <div id="slide-wrapper"></div>
+        <div class="nav-footer">
+             <button id="prev-btn" class="nav-button">Précédent</button>
+             <div class="progress-wrapper">
+                 <div class="progress-bar-container"><div id="progress-bar" class="progress-bar"></div></div>
+             </div>
+             <button id="next-btn" class="nav-button">Suivant</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slideWrapper = document.getElementById('slide-wrapper');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const progressBar = document.getElementById('progress-bar');
+
+            // --- API Config ---
+            const BASE_44_ORIGIN = "https://coreeno.base44.app"; 
+            const CLOVA_API_FUNCTION_URL = BASE_44_ORIGIN + '/api/functions/naverClovaSpeech';
+
+            // --- Sound Engine ---
+            let sounds = {};
+            let soundsReady = false;
+
+            const initAudioSynth = async () => {
+                if (soundsReady) return;
+                try {
+                    await Tone.start();
+                    sounds = {
+                        nextPage: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(),
+                        correct: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
+                        incorrect: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.3 } }).toDestination(),
+                        completion: new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'fatsawtooth' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination(),
+                        keyPress: new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2, envelope: { attack: 0.001, decay: 0.1, sustain: 0 } }).toDestination(),
+                        koreanWord: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination()
+                    };
+                    sounds.completion.volume.value = -6; sounds.keyPress.volume.value = -10;
+                    soundsReady = true;
+                } catch(e) { console.error(e); }
+            };
+
+            const playAudio = (src) => {
+                initAudioSynth();
+                if (src && src !== '') new Audio(src).play().catch(e => console.error(e));
+                else sounds.koreanWord?.triggerAttackRelease('A4', '8n');
+            };
+
+            // --- TTS Engine ---
+            const synth = window.speechSynthesis;
+            const speak = (text, lang = 'fr-FR') => {
+                if (synth.speaking) synth.cancel();
+                setTimeout(() => { 
+                    const utterThis = new SpeechSynthesisUtterance(text);
+                    utterThis.lang = lang; utterThis.rate = 0.9;
+                    synth.speak(utterThis);
+                 }, 100);
+            };
+
+            // --- Hangul IME Logic & Physical Keyboard Map ---
+            const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            const JUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+            const JONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            const VOWELS = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
+            const CONSONANTS = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+
+            // QWERTY to Hangul Jamo Mapping
+            const KEY_MAP = {
+                'q':'ㅂ', 'w':'ㅈ', 'e':'ㄷ', 'r':'ㄱ', 't':'ㅅ', 'y':'ㅛ', 'u':'ㅕ', 'i':'ㅑ', 'o':'ㅐ', 'p':'ㅔ',
+                'a':'ㅁ', 's':'ㄴ', 'd':'ㅇ', 'f':'ㄹ', 'g':'ㅎ', 'h':'ㅗ', 'j':'ㅓ', 'k':'ㅏ', 'l':'ㅣ',
+                'z':'ㅋ', 'x':'ㅌ', 'c':'ㅊ', 'v':'ㅍ', 'b':'ㅠ', 'n':'ㅜ', 'm':'ㅡ',
+                'Q':'ㅃ', 'W':'ㅉ', 'E':'ㄸ', 'R':'ㄲ', 'T':'ㅆ', 'O':'ㅒ', 'P':'ㅖ'
+            };
+
+            function processHangul(text, char) {
+                const last = text.length > 0 ? text[text.length - 1] : '';
+                const lastCode = last.charCodeAt(0);
+                if (!VOWELS.includes(char) && !CONSONANTS.includes(char)) return text + char;
+                
+                if (last === '' || lastCode < 0xAC00 || lastCode > 0xD7A3) {
+                    if (CONSONANTS.includes(last) && VOWELS.includes(char)) {
+                        return text.slice(0, -1) + String.fromCharCode(0xAC00 + CHO.indexOf(last) * 588 + JUNG.indexOf(char) * 28);
+                    }
+                    return text + char;
+                }
+                const relCode = lastCode - 0xAC00;
+                let cho = Math.floor(relCode / 588);
+                let jung = Math.floor((relCode % 588) / 28);
+                let jong = relCode % 28;
+
+                if (VOWELS.includes(char)) {
+                    if (jong > 0) {
+                        const jongChar = JONG[jong];
+                        const complexJongMap = {'ㄳ':['ㄱ','ㅅ'], 'ㄵ':['ㄴ','ㅈ'], 'ㄶ':['ㄴ','ㅎ'], 'ㄺ':['ㄹ','ㄱ'], 'ㄻ':['ㄹ','ㅁ'], 'ㄼ':['ㄹ','ㅂ'], 'ㄽ':['ㄹ','ㅅ'], 'ㄾ':['ㄹ','ㅌ'], 'ㄿ':['ㄹ','ㅍ'], 'ㅀ':['ㄹ','ㅎ'], 'ㅄ':['ㅂ','ㅅ']};
+                        if (complexJongMap[jongChar]) {
+                           const [first, second] = complexJongMap[jongChar];
+                           return text.slice(0, -1) + String.fromCharCode(0xAC00 + cho * 588 + jung * 28 + JONG.indexOf(first)) + String.fromCharCode(0xAC00 + CHO.indexOf(second) * 588 + JUNG.indexOf(char) * 28);
+                        }
+                        return text.slice(0, -1) + String.fromCharCode(0xAC00 + cho * 588 + jung * 28) + String.fromCharCode(0xAC00 + CHO.indexOf(JONG[jong]) * 588 + JUNG.indexOf(char) * 28);
+                    }
+                    const complexVowelMap = {'ㅗ': {'ㅏ':'ㅘ', 'ㅐ':'ㅙ', 'ㅣ':'ㅚ'}, 'ㅜ': {'ㅓ':'ㅝ', 'ㅔ':'ㅞ', 'ㅣ':'ㅟ'}, 'ㅡ': {'ㅣ':'ㅢ'}};
+                    if (complexVowelMap[JUNG[jung]]?.[char]) {
+                        return text.slice(0, -1) + String.fromCharCode(0xAC00 + cho * 588 + JUNG.indexOf(complexVowelMap[JUNG[jung]][char]) * 28 + jong);
+                    }
+                } else {
+                    if (jong === 0) {
+                        if (JONG.indexOf(char) > 0) return text.slice(0, -1) + String.fromCharCode(lastCode + JONG.indexOf(char));
+                    } else {
+                        const complexJongMap = {'ㄱ':{'ㅅ':'ㄳ'}, 'ㄴ':{'ㅈ':'ㄵ', 'ㅎ':'ㄶ'}, 'ㄹ':{'ㄱ':'ㄺ','ㅁ':'ㄻ','ㅂ':'ㄼ','ㅅ':'ㄽ','ㅌ':'ㄾ','ㅍ':'ㄿ','ㅎ':'ㅀ'}, 'ㅂ':{'ㅅ':'ㅄ'}};
+                        if(complexJongMap[JONG[jong]]?.[char]) {
+                            return text.slice(0, -1) + String.fromCharCode(0xAC00 + cho * 588 + jung * 28 + JONG.indexOf(complexJongMap[JONG[jong]][char]));
+                        }
+                    }
+                }
+                return text + char;
+            }
+
+            // --- Speech Recording & Evaluation (Naver Clova) ---
+            let mediaRecorder;
+            let audioChunks = [];
+            let isRecording = false;
+
+            async function startRecording(pageData) {
+                if (isRecording) return;
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    isRecording = true;
+                    audioChunks = [];
+                    let mimeType = 'audio/webm;codecs=opus';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/webm';
+                    
+                    mediaRecorder = new MediaRecorder(stream, { mimeType });
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    
+                    mediaRecorder.onstart = () => {
+                        const micBtn = document.getElementById('mic-btn');
+                        const status = document.getElementById('speech-status');
+                        micBtn.classList.add('recording');
+                        status.textContent = "Écoute en cours...";
+                        status.style.color = "#333";
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        isRecording = false;
+                        const micBtn = document.getElementById('mic-btn');
+                        micBtn.classList.remove('recording');
+                        micBtn.classList.add('loading');
+                        document.getElementById('speech-status').textContent = "Analyse...";
+
+                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = () => evaluateSpeech(pageData, reader.result);
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                } catch(err) {
+                    alert("Microphone access denied or error: " + err);
+                    isRecording = false;
+                }
+            }
+
+            function stopRecording() {
+                if (mediaRecorder && isRecording) mediaRecorder.stop();
+            }
+
+            async function evaluateSpeech(pageData, audioBase64) {
+                const answer = pageData.vocab[pageData.target];
+                const status = document.getElementById('speech-status');
+                const micBtn = document.getElementById('mic-btn');
+
+                try {
+                    const response = await fetch(CLOVA_API_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ audioBase64: audioBase64, languageCode: "Kor", referenceText: answer })
+                    });
+                    
+                    if (!response.ok) throw new Error("API Error");
+                    const result = await response.json();
+                    
+                    const score = result.assessment?.pronunciation_score || 0;
+                    const recognizedText = result.text || "";
+                    
+                    // Simple logic: if score > 70 OR text matches loosely
+                    const isCorrect = score >= 70 || recognizedText.replace(/\s/g,'').includes(answer.replace(/\s/g,''));
+
+                    if (isCorrect) {
+                        status.textContent = `Excellent ! (Score: ${Math.round(score)})`;
+                        status.style.color = '#22c55e';
+                        nextBtn.disabled = false;
+                        micBtn.disabled = true;
+                        micBtn.classList.remove('loading');
+                        sounds.correct?.triggerAttackRelease('E5', '8n');
+                    } else {
+                        status.textContent = `Réessayez. J'ai entendu: "${recognizedText}"`;
+                        status.style.color = '#ef4444';
+                        micBtn.classList.remove('loading');
+                        sounds.incorrect?.triggerAttackRelease('C3', '4n');
+                    }
+
+                } catch(e) {
+                    console.error(e);
+                    status.textContent = "Erreur de reconnaissance.";
+                    micBtn.classList.remove('loading');
+                }
+            }
+
+            // --- Data & Course Logic ---
+            const shuffleArray = (array) => array.sort(() => Math.random() - 0.5);
+
+            const vocabulary = {
+                '가다': { kr: '가다', fr: 'Aller', image: 'https://static.wixstatic.com/media/699687_d1859f2594f143d8b898a61786cb0f7a~mv2.png', audio: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3', formal: '갑니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_6b26d193cdf44c17b952a7486b0e3863.mp3', poli: '가요', poli_audio: 'https://static.wixstatic.com/mp3/699687_f886419b176847058c7efe3589e5067a.mp3', informel: '가', informel_audio: 'https://static.wixstatic.com/mp3/699687_8d343d7a70b84b98b9421c968d9c9cfb.mp3' },
+                '자다': { kr: '자다', fr: 'Dormir', image: 'https://static.wixstatic.com/media/699687_e1f86611da5c4b448b5d5c0e0c55b1c7~mv2.png', audio: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3', formal: '잡니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_6c93d6a3727e4beb9c599b3840f67c82.mp3', poli: '자요', poli_audio: 'https://static.wixstatic.com/mp3/699687_46f8ba4017f34d4bac425b61bad08347.mp3', informel: '자', informel_audio: 'https://static.wixstatic.com/mp3/699687_87c52a0bb4794f2bb900ddda55bbcd11.mp3' },
+                '만나다': { kr: '만나다', fr: 'Rencontrer', image: 'https://static.wixstatic.com/media/699687_f7a6a996b74e4c3fa42c9e3986fabce8~mv2.png', audio: 'https://static.wixstatic.com/mp3/699687_fd7387bd3d7447c495b9157062848e5f.mp3', formal: '만납니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_e30ea5b62dde46619a8a1e5098af9184.mp3', poli: '만나요', poli_audio: 'https://static.wixstatic.com/mp3/699687_4bd956409f7e43619ed7c9873a03c3fe.mp3', informel: '만나', informel_audio: 'https://static.wixstatic.com/mp3/699687_2e3e54bf53384cdf9b3d4ff03e03e0cf.mp3' }
+            };
+
+            const coursePages = [];
+            coursePages.push({ type: 'cover', title: 'Pratique de la conjugaison du groupe 1 (1)', text: 'Dans ce cours, nous nous entraînerons à conjuguer les prédicats de base au présent.' });
+            
+            Object.values(vocabulary).forEach(vocab => {
+                coursePages.push({ type: 'overview', vocab: vocab });
+                const quizTypes = shuffleArray(['writing_formal', 'writing_informel', 'speaking_poli', 'speaking_formal', 'writing_poli']).slice(0, 4);
+                quizTypes.forEach(quiz => {
+                    const [type, target] = quiz.split('_');
+                     coursePages.push({ type: `${type}_quiz`, vocab: vocab, target: target, question: `Conjuguez "${vocab.fr}" au style ${target}.` });
+                });
+            });
+
+            coursePages.push({ type: 'mcq', question: "Quelle est la conjugaison formelle de 'Dormir' ?", options: ['갑니다', '만나요', '자', '잡니다', '자다'], answer: '잡니다' });
+            coursePages.push({ type: 'mcq', question: "Quelle est la conjugaison informelle de 'Rencontrer' ?", options: ['가', '만나', '자요', '만납니다', '만나다', '갑니다', '만나아'], answer: '만나' });
+            coursePages.push({ type: 'mcq', question: "Quelle est la conjugaison polie de 'Aller' ?", options: ['자다', '가요', '갑니다', '가아요', '자'], answer: '가요' });
+            coursePages.push({ type: 'completion', text: 'Félicitations ! Continuez à pratiquer la conjugaison d\'autres prédicats dans la Leçon 11.' });
+
+            let currentPage = 0;
+            
+            const renderPage = () => {
+                const pageData = coursePages[currentPage];
+                let contentHTML = '';
+                const isInteractive = ['writing_quiz', 'speaking_quiz', 'mcq'].includes(pageData.type);
+                
+                nextBtn.disabled = isInteractive;
+                nextBtn.textContent = 'Suivant';
+                delete nextBtn.dataset.mode;
+
+                switch (pageData.type) {
+                    case 'cover':
+                        contentHTML = `<h1 class="title-text mb-6">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`;
+                        break;
+                    case 'overview':
+                        const v = pageData.vocab;
+                        contentHTML = `
+                            <div class="overview-layout">
+                                <div class="overview-left">
+                                    <div class="overview-card overview-image-card" style="background-image: url('${v.image}')" data-fr="${v.fr}"></div>
+                                    <div class="overview-card" data-audio="${v.audio}">${v.kr}</div>
+                                </div>
+                                <div class="overview-arrow">→</div>
+                                <div class="overview-right">
+                                    <div class="overview-card" data-audio="${v.formal_audio}">${v.formal}<div class="footnote">formel</div></div>
+                                    <div class="overview-card" data-audio="${v.poli_audio}">${v.poli}<div class="footnote">poli</div></div>
+                                    <div class="overview-card" data-audio="${v.informel_audio}">${v.informel}<div class="footnote">informel</div></div>
+                                </div>
+                            </div>`;
+                        break;
+                    case 'writing_quiz': {
+                        const vocab = pageData.vocab;
+                        const target = pageData.target;
+                        const answer = vocab[target];
+                        const hintAudio = vocab[target + '_audio'];
+                        
+                        const keys = [
+                            ['ㅂ','ㅈ','ㄷ','ㄱ','ㅅ','ㅛ','ㅕ','ㅑ','ㅐ','ㅔ'],
+                            ['ㅁ','ㄴ','ㅇ','ㄹ','ㅎ','ㅗ','ㅓ','ㅏ','ㅣ'],
+                            ['ㅋ','ㅌ','ㅊ','ㅍ','ㅠ','ㅜ','ㅡ']
+                        ];
+
+                        // Generate Key Rows
+                        const keyboardHTML = keys.map((row, index) => {
+                            let rowHTML = row.map(key => `<button class="key">${key}</button>`).join('');
+                            if (index === keys.length - 1) {
+                                rowHTML += `<button class="key special" data-key="del">⌫</button>`;
+                            }
+                            return `<div class="key-row">${rowHTML}</div>`;
+                        }).join('');
+
+                        contentHTML = `
+                            <div class="quiz-container">
+                                <p class="body-text">${pageData.question}</p>
+                                <div class="input-wrapper">
+                                    <div id="input-display" class="input-display"></div>
+                                    <button class="key special submit-btn" data-key="check">✓</button>
+                                </div>
+                                <div class="keyboard">
+                                    ${keyboardHTML}
+                                </div>
+                                <button class="hint-button" data-audio="${hintAudio}">💡 Aide</button>
+                            </div>`;
+                        break;
+                    }
+                    case 'speaking_quiz': {
+                        const vocab = pageData.vocab;
+                        const target = pageData.target;
+                        const hintAudio = vocab[target + '_audio'];
+                        contentHTML = `
+                            <div class="quiz-container">
+                                <p class="body-text">${pageData.question}</p>
+                                <button id="mic-btn">🎙️</button>
+                                <p id="speech-status" class="speech-status">Appuyez pour parler</p>
+                                <button class="hint-button" data-audio="${hintAudio}">💡 Aide</button>
+                            </div>`;
+                        break;
+                    }
+                    case 'mcq':
+                        nextBtn.textContent = 'Vérifier';
+                        contentHTML = `
+                            <h2 class="mcq-title">${pageData.question}</h2>
+                            <div class="mcq-grid">
+                                ${shuffleArray([...pageData.options]).map(opt => `<button class="mcq-option" data-value="${opt}">${opt}</button>`).join('')}
+                            </div>`;
+                        break;
+                    case 'completion':
+                        contentHTML = `<h1 class="text-5xl font-bold text-sky-500 mb-4">🎉</h1><p class="body-text">${pageData.text}</p>`;
+                        break;
+                }
+                slideWrapper.innerHTML = `<div class="slide">${contentHTML}</div>`;
+                setTimeout(() => slideWrapper.querySelector('.slide').classList.add('active'), 10);
+                
+                attachEventListeners(pageData);
+                updateNav();
+            };
+
+            function handlePhysicalKeydown(e) {
+                const pageData = coursePages[currentPage];
+                if (pageData.type !== 'writing_quiz') return;
+
+                const inputDisplay = document.getElementById('input-display');
+                if (!inputDisplay || inputDisplay.classList.contains('correct')) return;
+
+                initAudioSynth();
+
+                if (e.key === 'Backspace') {
+                    inputDisplay.textContent = inputDisplay.textContent.slice(0, -1);
+                    sounds.keyPress?.triggerAttackRelease('C2', '32n');
+                } else if (e.key === 'Enter') {
+                    checkAnswer(pageData, inputDisplay);
+                } else {
+                    // Use KEY_MAP for physical keyboard input (ignoring current IME state)
+                    const keyChar = KEY_MAP[e.key]; 
+                    if (keyChar) {
+                        inputDisplay.textContent = processHangul(inputDisplay.textContent, keyChar);
+                        sounds.keyPress?.triggerAttackRelease('C2', '32n');
+                    }
+                }
+            }
+
+            function checkAnswer(pageData, inputDisplay) {
+                const answer = pageData.vocab[pageData.target];
+                const btn = slideWrapper.querySelector('.submit-btn');
+                
+                if (inputDisplay.textContent === answer) {
+                    inputDisplay.classList.add('correct'); 
+                    nextBtn.disabled = false; 
+                    sounds.correct?.triggerAttackRelease('E5', '8n');
+                    slideWrapper.querySelectorAll('.key').forEach(k => k.disabled = true);
+                    if (btn) btn.disabled = true;
+                } else {
+                    inputDisplay.classList.add('incorrect'); 
+                    sounds.incorrect?.triggerAttackRelease('C3', '4n');
+                    setTimeout(() => inputDisplay.classList.remove('incorrect'), 500);
+                }
+            }
+
+            function attachEventListeners(pageData) {
+                slideWrapper.querySelectorAll('[data-audio]').forEach(el => el.addEventListener('click', () => playAudio(el.dataset.audio)));
+                slideWrapper.querySelectorAll('[data-fr]').forEach(el => el.addEventListener('click', () => speak(el.dataset.fr)));
+                
+                if (pageData.type === 'writing_quiz') {
+                    const inputDisplay = document.getElementById('input-display');
+                    
+                    // Virtual Keyboard Listeners
+                    slideWrapper.querySelectorAll('.key').forEach(key => {
+                        key.onclick = () => {
+                            initAudioSynth();
+                            sounds.keyPress?.triggerAttackRelease('C2', '32n');
+                            const val = key.dataset.key || key.textContent;
+                            if (val === 'del') {
+                                inputDisplay.textContent = inputDisplay.textContent.slice(0, -1);
+                            } else if (val === 'check') {
+                                checkAnswer(pageData, inputDisplay);
+                            } else {
+                                inputDisplay.textContent = processHangul(inputDisplay.textContent, val);
+                            }
+                        };
+                    });
+                } else if (pageData.type === 'speaking_quiz') {
+                    const micBtn = document.getElementById('mic-btn');
+                    micBtn.onclick = () => {
+                        initAudioSynth();
+                        isRecording ? stopRecording() : startRecording(pageData);
+                    };
+                } else if (pageData.type === 'mcq') {
+                    const options = slideWrapper.querySelectorAll('.mcq-option');
+                    options.forEach(opt => {
+                        opt.onclick = () => {
+                            if(nextBtn.dataset.mode === 'retry') return;
+                            
+                            options.forEach(o => o.classList.add('disabled'));
+                            if (opt.dataset.value === pageData.answer) {
+                                opt.classList.add('correct'); 
+                                nextBtn.disabled = false; 
+                                nextBtn.textContent = 'Suivant';
+                                sounds.correct?.triggerAttackRelease('E5', '8n');
+                            } else {
+                                opt.classList.add('incorrect'); 
+                                sounds.incorrect?.triggerAttackRelease('C3', '4n');
+                                nextBtn.textContent = 'Réessayer';
+                                nextBtn.dataset.mode = 'retry';
+                                nextBtn.disabled = false;
+                            }
+                        };
+                    });
+                }
+            }
+            
+            const updateNav = () => {
+                const progress = ((currentPage + 1) / coursePages.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                prevBtn.style.visibility = currentPage === 0 ? 'hidden' : 'visible';
+                if (currentPage === coursePages.length - 1) {
+                    nextBtn.style.visibility = 'hidden';
+                } else {
+                    nextBtn.style.visibility = 'visible';
+                }
+            };
+
+            const goToNextPage = () => {
+                initAudioSynth();
+                const pageData = coursePages[currentPage];
+
+                // MCQ Retry Logic
+                if (pageData.type === 'mcq' && nextBtn.dataset.mode === 'retry') {
+                    const options = slideWrapper.querySelectorAll('.mcq-option');
+                    options.forEach(o => o.classList.remove('disabled', 'incorrect'));
+                    nextBtn.textContent = 'Vérifier';
+                    nextBtn.disabled = true;
+                    delete nextBtn.dataset.mode;
+                    return;
+                }
+
+                if (currentPage < coursePages.length - 1) {
+                    if (currentPage === coursePages.length - 2) {
+                        if (window.parent) {
+                            window.parent.postMessage({ type: 'lesson_complete' }, '*');
+                        }
+                    }
+
+                    currentPage++; renderPage();
+                    if (currentPage === coursePages.length - 1) sounds.completion?.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5");
+                    else sounds.nextPage?.triggerAttackRelease('C5', '8n');
+                }
+            };
+            
+            const goToPrevPage = () => {
+                if (currentPage > 0) { currentPage--; renderPage(); }
+            };
+
+            nextBtn.addEventListener('click', goToNextPage);
+            prevBtn.addEventListener('click', goToPrevPage);
+            
+            // Global Physical Keyboard Listener
+            document.addEventListener('keydown', handlePhysicalKeydown);
+            
+            document.body.addEventListener('click', initAudioSynth, { once: true });
+            document.body.addEventListener('touchstart', initAudioSynth, { once: true });
+
+            renderPage();
+        });
+    </script>
+</body>
+</html>
