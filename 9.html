@@ -55,7 +55,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            padding: 1.5rem;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -66,24 +66,24 @@
             transition: opacity 0.5s ease-in-out;
             background-color: white;
             overflow-y: auto;
-            gap: 1.5rem;
+            gap: 1rem; /* 간격 조정 */
         }
 
         .slide.active { opacity: 1; visibility: visible; }
 
         /* --- 텍스트 스타일 --- */
         .title-text { 
-            font-size: clamp(1.4rem, 4vh, 2.5rem); 
+            font-size: clamp(1.3rem, 3.5vh, 2.5rem); 
             font-weight: 700; 
             color: #333; 
             line-height: 1.2;
             margin: 0;
         }
         .body-text { 
-            font-size: clamp(1rem, 2.8vh, 1.5rem); 
+            font-size: clamp(0.9rem, 2.5vh, 1.5rem); 
             color: #1a1a1a; 
-            line-height: 1.6; 
-            max-width: 90%; 
+            line-height: 1.5; 
+            max-width: 95%; 
             margin: 0 auto;
         }
         .terminaison { color: #ef4444; font-weight: 600; }
@@ -96,15 +96,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem;
+            padding: 0.8rem 1rem;
             background-color: #f9fafb;
             border-top: 1px solid #e5e7eb;
             height: auto;
-            min-height: 70px;
+            min-height: 60px;
         }
 
         .nav-button {
-            background-color: #38bdf8; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 9999px;
+            background-color: #38bdf8; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 9999px;
             font-size: clamp(0.8rem, 2vh, 1rem); cursor: pointer; transition: all 0.3s ease;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             white-space: nowrap;
@@ -112,28 +112,52 @@
         .nav-button:hover { background-color: #0ea5e9; transform: translateY(-2px); }
         
         .progress-wrapper { width: 33.333333%; }
-        .progress-bar-container { width: 100%; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; height: 10px; }
+        .progress-bar-container { width: 100%; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; height: 8px; }
         .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.5s ease; }
 
-        /* --- 콘텐츠 스타일 --- */
-        .footnote { font-size: clamp(0.7rem, 1.8vh, 1rem); color: #64748b; font-weight: normal; margin-top: 4px; }
+        /* --- 콘텐츠 스타일 (수정됨) --- */
+        .footnote { 
+            font-size: clamp(0.6rem, 1.5vh, 0.9rem); 
+            color: #64748b; 
+            font-weight: normal; 
+            margin-top: 2px; 
+            white-space: nowrap; /* 각주도 줄바꿈 방지 */
+        }
         
-        .word-card-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; width: 100%; }
+        /* 단어 목록 행 */
+        .word-card-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; width: 100%; }
+        
+        /* 공식 행: 무조건 한 줄 유지 */
+        .conjugation-formula-row {
+            display: flex; 
+            flex-wrap: nowrap; /* 절대 줄바꿈 금지 */
+            justify-content: center; 
+            align-items: center;
+            gap: 0.2rem; /* 간격 최소화 */
+            font-size: clamp(0.9rem, 2.5vh, 1.8rem); /* 폰트 크기 유동적 */
+            font-weight: bold;
+            width: 100%;
+            max-width: 100%;
+        }
+        .conjugation-formula-row span { 
+            margin: 0; 
+            flex-shrink: 0; /* 기호는 줄어들지 않음 */
+            padding: 0 0.1rem;
+        }
+
+        /* 카드 스타일 */
         .word-card {
-             background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 0.75rem;
-             padding: 0.8rem 1.2rem; font-size: clamp(1.1rem, 3vh, 1.6rem); font-weight: 600;
+             background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 0.6rem;
+             padding: 0.4rem 0.6rem; /* 내부 패딩 축소 */
+             font-size: inherit; /* 부모 폰트 사이즈 상속 */
+             font-weight: 600;
              cursor: pointer; transition: all 0.2s ease;
              display: flex; flex-direction: column; align-items: center;
-             min-width: 80px;
+             white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+             flex-shrink: 1; /* 공간 부족 시 카드 크기 축소 허용 */
+             min-width: 0; /* flex item 축소 한계 해제 */
         }
         .word-card:hover { transform: translateY(-2px); border-color: #38bdf8; }
-
-        .conjugation-formula-row {
-            display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
-            gap: 0.8rem; font-size: clamp(1.1rem, 3vh, 1.8rem); font-weight: bold;
-            width: 100%;
-        }
-        .conjugation-formula-row span { margin: 0 0.2rem; }
 
         /* --- 레이아웃 수정 (이미지 제거 후 중앙 정렬) --- */
         .content-layout {
@@ -144,25 +168,28 @@
 
         .flowchart-container {
             display: flex; flex-direction: column; align-items: center;
-            gap: 1.5rem; width: 100%; max-width: 600px;
+            gap: 1rem; width: 100%; max-width: 600px;
         }
         .flowchart-decomposition {
-            display: flex; align-items: center; gap: 0.8rem;
-            font-size: clamp(1.1rem, 3vh, 1.8rem); font-weight: bold;
-            padding: 1rem 1.5rem; background-color: #f9fafb;
+            display: flex; align-items: center; gap: 0.3rem;
+            font-size: clamp(0.9rem, 2.5vh, 1.8rem); font-weight: bold;
+            padding: 0.8rem; background-color: #f9fafb;
             border-radius: 0.75rem; border: 1px solid #f3f4f6;
-            flex-wrap: wrap; justify-content: center;
+            flex-wrap: nowrap; /* 여기도 줄바꿈 방지 */
+            justify-content: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             width: 100%;
+            white-space: nowrap;
         }
-        .flowchart-element { display: flex; flex-direction: column; align-items: center; }
-        .flowchart-results { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+        .flowchart-element { display: flex; flex-direction: column; align-items: center; flex-shrink: 1; }
+        .flowchart-results { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
         
         /* 모바일 최적화 */
-        @media (max-width: 768px) {
-            .slide { padding: 1rem; gap: 1rem; }
-            .body-text { font-size: 1.1rem; }
-            .word-card { padding: 0.5rem 0.8rem; }
+        @media (max-width: 480px) {
+            .slide { padding: 0.5rem; gap: 0.8rem; }
+            .body-text { font-size: 1rem; }
+            .word-card { border-width: 1px; } /* 테두리 두께 축소 */
+            .footnote { font-size: 0.6rem; } /* 모바일에서 각주 더 작게 */
         }
     </style>
 </head>
@@ -218,7 +245,7 @@
                 }, 100);
             };
 
-            // --- Data Content (이미지 제거) ---
+            // --- Data Content ---
             const vocabulary = {
                 '가다': { fr: 'Aller', audio: 'https://static.wixstatic.com/mp3/699687_f6705ef1791f4ea2abb72826231dd307.mp3', formal: '갑니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_6b26d193cdf44c17b952a7486b0e3863.mp3', poli: '가요', poli_audio: 'https://static.wixstatic.com/mp3/699687_f886419b176847058c7efe3589e5067a.mp3', informel: '가', informel_audio: 'https://static.wixstatic.com/mp3/699687_8d343d7a70b84b98b9421c968d9c9cfb.mp3' },
                 '자다': { fr: 'Dormir', audio: 'https://static.wixstatic.com/mp3/699687_dd5aed05922f4c828095674d9b117b62.mp3', formal: '잡니다', formal_audio: 'https://static.wixstatic.com/mp3/699687_6c93d6a3727e4beb9c599b3840f67c82.mp3', poli: '자요', poli_audio: 'https://static.wixstatic.com/mp3/699687_46f8ba4017f34d4bac425b61bad08347.mp3', informel: '자', informel_audio: 'https://static.wixstatic.com/mp3/699687_87c52a0bb4794f2bb900ddda55bbcd11.mp3' },
@@ -278,7 +305,7 @@
                             
                             return `
                                 <div class="conjugation-formula-row">
-                                    <div class="word-card" data-word="${word}">${word}<span class="footnote">(infinitif: ${vocab.fr})</span></div>
+                                    <div class="word-card" data-word="${word}">${word}<span class="footnote">(infinitif)</span></div>
                                     <span class="text-gray-400">→</span>
                                     <span>${radical}</span>
                                     <span>+</span>
@@ -286,18 +313,17 @@
                                     <span>=</span>
                                     <div class="word-card" data-audio="${vocab.formal_audio}">
                                         ${vocab.formal}
-                                        <div class="footnote">(conjugaison formelle)</div>
+                                        <div class="footnote">(formel)</div>
                                     </div>
                                 </div>`;
                         }).join('');
-                        contentHTML = `<p class="body-text">${pageData.text}</p><div class="flex flex-col gap-2 w-full mt-2">${examplesHTML}</div>`;
+                        contentHTML = `<p class="body-text" style="margin-bottom: 0.5rem;">${pageData.text}</p><div class="flex flex-col gap-2 w-full">${examplesHTML}</div>`;
                         break;
                     case 'definition':
                          contentHTML = `<p class="body-text">${pageData.text}</p>`;
                          break;
                     case 'poli_conjugation_rule':
                         const vocab = vocabulary[pageData.word];
-                        // 이미지 카드 및 컨테이너 제거, 텍스트와 플로우차트만 중앙 정렬
                         contentHTML = `
                             <p class="body-text" style="margin-bottom: 0;">${pageData.rule_text}</p>
                             <div class="content-layout">
@@ -318,8 +344,8 @@
                                         </div>
                                     </div>
                                     <div class="flowchart-results">
-                                        <div class="word-card" data-audio="${vocab.poli_audio}">${vocab.poli}<div class="footnote">Conjugaison polie</div></div>
-                                        <div class="word-card" data-audio="${vocab.informel_audio}">${vocab.informel}<div class="footnote">Conjugaison informelle</div></div>
+                                        <div class="word-card" data-audio="${vocab.poli_audio}">${vocab.poli}<div class="footnote">Poli</div></div>
+                                        <div class="word-card" data-audio="${vocab.informel_audio}">${vocab.informel}<div class="footnote">Informel</div></div>
                                     </div>
                                 </div>
                             </div>`;
@@ -350,7 +376,6 @@
                         }
                     };
                 });
-                // poli-image-card 이벤트 리스너 제거됨
             }
 
             const updateNav = () => {
