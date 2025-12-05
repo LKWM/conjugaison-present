@@ -9,7 +9,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        /* --- 레이아웃 엔진 --- */
+        /* --- 기본 레이아웃 설정 (5강 참조) --- */
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
@@ -31,7 +31,7 @@
         #course-container {
             width: 100%;
             max-width: 1000px;
-            height: 100%;
+            height: 100%; 
             max-height: 100%;
             background-color: white;
             border-radius: 1rem;
@@ -47,6 +47,7 @@
             flex: 1;
             position: relative;
             overflow: hidden;
+            min-height: 0;
         }
 
         .slide {
@@ -55,7 +56,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            padding: 1.5rem;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -63,134 +64,273 @@
             text-align: center;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.5s ease-in-out;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
             background-color: white;
-            overflow-y: auto;
-            gap: 1.5rem;
         }
 
-        .slide.active { opacity: 1; visibility: visible; }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
 
-        /* --- 텍스트 스타일 --- */
-        .title-text { font-size: clamp(1.4rem, 4vh, 2.5rem); font-weight: 700; color: #333; line-height: 1.2; margin: 0; }
-        .body-text { font-size: clamp(1rem, 2.5vh, 1.4rem); color: #1a1a1a; line-height: 1.5; max-width: 90%; margin: 0 auto; }
-        .footnote { font-size: clamp(0.7rem, 1.8vh, 1rem); color: #64748b; font-weight: normal; margin-top: 4px; }
+        /* 텍스트 스타일 (5강 참조 - 더 크게) */
+        .title-text {
+            font-size: clamp(1.4rem, 4vh, 2.2rem);
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
 
-        /* --- 하단 네비게이션 --- */
-        .nav-footer {
-            flex-shrink: 0;
+        .body-text {
+            font-size: clamp(1rem, 2.5vh, 1.3rem);
+            color: #1a1a1a;
+            line-height: 1.5;
+            max-width: 90%;
+        }
+
+        .footnote {
+            font-size: clamp(0.7rem, 2vh, 0.9rem);
+            color: #64748b;
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        /* 네비게이션 바 (5강 스타일) */
+        .nav-container {
+            padding: 0.5rem 1rem;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem;
-            background-color: #f9fafb;
-            border-top: 1px solid #e5e7eb;
-            height: auto;
-            min-height: 70px;
+            flex-shrink: 0;
+            height: 60px;
         }
 
         .nav-button {
-            background-color: #38bdf8; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 9999px;
-            font-size: clamp(0.8rem, 2vh, 1rem); cursor: pointer; transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            background-color: #38bdf8;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             white-space: nowrap;
+            min-width: 80px;
         }
-        .nav-button:hover { background-color: #0ea5e9; transform: translateY(-2px); }
-        .nav-button:disabled { background-color: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; opacity: 0.7; }
+        .nav-button:hover { background-color: #0ea5e9; }
+        .nav-button:disabled { 
+            background-color: #cbd5e1; 
+            cursor: not-allowed; 
+            box-shadow: none; 
+            opacity: 0.7;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.3s ease; }
+
+        /* --- Overview (10강 전용 레이아웃 - 5강 카드 스타일 적용) --- */
+        .overview-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem;
+        }
         
-        .progress-wrapper { width: 33.333333%; }
-        .progress-bar-container { width: 100%; background-color: #e2e8f0; border-radius: 9999px; overflow: hidden; height: 10px; }
-        .progress-bar { height: 100%; width: 0%; background-color: #38bdf8; transition: width 0.5s ease; }
-
-        /* --- Overview Styles --- */
-        .overview-layout { 
-            display: flex; align-items: center; justify-content: center; 
-            gap: 2rem; width: 100%; 
+        /* 모바일에서도 가로 배치 유지하되 비율 조정 */
+        .overview-left, .overview-right {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
         }
-        .overview-left { display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 40%; }
-        .overview-right { display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 40%; }
-        .overview-arrow { font-size: clamp(2rem, 5vh, 3rem); color: #cbd5e1; }
-        .overview-card {
-            background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 1rem; padding: 0.8rem 1.2rem;
-            font-size: clamp(1rem, 2.5vh, 1.4rem); font-weight: 600; cursor: pointer; transition: all 0.2s;
-            width: 100%; display: flex; flex-direction: column; align-items: center;
-        }
-        .overview-card:hover { transform: scale(1.02); border-color: #38bdf8; }
-        .overview-image-card { aspect-ratio: 1/1; max-width: 150px; background-size: cover; background-position: center; }
 
-        /* --- Quiz & Input Styles --- */
-        .quiz-container { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; width: 100%; max-width: 600px; }
-        .input-wrapper { display: flex; align-items: center; gap: 0.75rem; width: 100%; }
+        .overview-arrow {
+            font-size: clamp(1.5rem, 4vh, 2.5rem);
+            color: #cbd5e1;
+            flex-shrink: 0;
+        }
+
+        /* 5강의 vocab-card 스타일을 베이스로 사용 */
+        .card-base {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.8rem;
+            width: 100%;
+            max-width: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(1rem, 3vh, 1.5rem); /* 폰트 크기 키움 */
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex-shrink: 1; /* 공간 부족시 줄어듦 */
+        }
+        .card-base:hover { transform: scale(1.02); border-color: #38bdf8; }
+        
+        .image-card {
+            aspect-ratio: 1/1;
+            width: clamp(80px, 15vh, 150px); /* 이미지 최소 크기 보장 */
+            background-size: cover;
+            background-position: center;
+            border-radius: 0.75rem;
+            border: 2px solid #e2e8f0;
+        }
+
+        /* --- Writing Quiz (5강 스타일 적용) --- */
+        .writing-quiz-container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 0.8rem; 
+            width: 100%; 
+            max-width: 700px; 
+        }
+        
+        .input-wrapper { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            width: 95%; 
+        }
+        
         .input-display {
-            flex-grow: 1; min-height: clamp(3rem, 8vh, 4rem); background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 1rem;
-            padding: 0.5rem; font-size: clamp(1.5rem, 4vh, 2rem); font-weight: bold; letter-spacing: 0.1em;
-            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+            flex-grow: 1;
+            min-height: clamp(3rem, 8vh, 4.5rem); 
+            background-color: #f8fafc; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 0.75rem;
+            padding: 0.5rem; 
+            font-size: clamp(1.5rem, 4vw, 2.2rem); 
+            font-weight: bold; 
+            letter-spacing: 0.1em;
+            display: flex; align-items: center; justify-content: center; 
+            transition: all 0.2s;
         }
         .input-display.correct { border-color: #22c55e; background-color: #dcfce7; color: #166534; }
         .input-display.incorrect { border-color: #ef4444; animation: shake 0.5s; }
-        
-        /* 키보드 스타일 */
+
         .keyboard { 
-            display: flex; flex-direction: column; gap: 0.5rem; width:100%; 
-            background-color: #e2e8f0; 
-            padding: 0.8rem; 
-            border-radius: 0.8rem;
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem; 
+            padding: 0.5rem 0; 
+            width: 100%; 
         }
-        .key-row { display: flex; justify-content: center; gap: 0.3rem; }
+        .key-row { display: flex; gap: 0.3rem; justify-content: center; width: 100%; }
+        
         .key {
-            width: clamp(2rem, 8vw, 3rem); height: clamp(2.5rem, 9vw, 3.5rem); 
-            font-size: clamp(1rem, 2vh, 1.2rem); font-weight: 600; border-radius: 0.5rem;
-            border: 1px solid #cbd5e1; border-bottom-width: 3px;
-            background-color: #ffffff; color: #334155;
-            cursor: pointer; display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            width: clamp(2rem, 9vw, 3.2rem); 
+            height: clamp(2.5rem, 10vw, 3.5rem); 
+            font-size: clamp(1rem, 2.5vh, 1.3rem);
+            font-weight: 600; 
+            border-radius: 0.5rem;
+            border: none; 
+            background-color: #fff; 
+            color: #334155;
+            border-bottom: 3px solid #cbd5e1; 
+            cursor: pointer; 
+            transition: all 0.1s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: flex; justify-content: center; align-items: center;
         }
         .key:active { transform: translateY(2px); border-bottom-width: 1px; }
-        .key.special { background-color: #d1d5db; }
+        .key.special { background-color: #e2e8f0; font-size: 1rem; }
         
-        .submit-btn { width: clamp(3rem, 10vw, 4rem); background-color: #38bdf8; color: white; border-color: #0ea5e9; border-bottom-width: 4px;}
+        .submit-btn {
+            height: clamp(3rem, 8vh, 4.5rem); 
+            width: clamp(3rem, 8vh, 4.5rem); 
+            flex-shrink: 0; padding: 0;
+            background-color: #38bdf8; color: white; border-bottom-color: #0ea5e9;
+            border-radius: 0.6rem;
+            font-size: 1.5rem;
+        }
+
+        /* --- Speech Practice (5강 스타일 적용) --- */
+        .speech-container { 
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .mic-btn { 
+            background-color: #38bdf8;
+            color: white;
+            border: none; 
+            cursor: pointer; 
+            font-size: clamp(2rem, 5vh, 3rem); 
+            transition: all 0.2s ease-in-out; 
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: clamp(4rem, 10vh, 5.5rem); /* 5강보다 조금 더 키움 */
+            height: clamp(4rem, 10vh, 5.5rem);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .mic-btn:hover { background-color: #0ea5e9; }
+        .mic-btn.recording { background-color: #ef4444; transform: scale(1.1); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4); }
+        .mic-btn.loading { background-color: #6b7280; animation: pulse 1.5s infinite; }
         
+        /* --- MCQ Quiz (10강 전용, 5강 스타일 적용) --- */
+        .mcq-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        /* MCQ 옵션도 카드 베이스 스타일 사용 */
+        .mcq-option {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-size: clamp(1rem, 2.5vh, 1.3rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .mcq-option:hover { border-color: #38bdf8; transform: translateY(-2px); }
+        .mcq-option.correct { background-color: #dcfce7; border-color: #22c55e; color: #166534; }
+        .mcq-option.incorrect { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+
         .hint-button {
             background: none; border: 2px solid #fbbf24; color: #d97706; padding: 0.4rem 0.8rem; border-radius: 9999px;
             font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+            margin-top: 1rem;
         }
-        
-        /* --- Mic & Speech Styles --- */
-        #mic-btn { 
-            background-color: #38bdf8; color: white; border: none; border-radius: 50%;
-            width: clamp(3.5rem, 10vh, 5rem); height: clamp(3.5rem, 10vh, 5rem);
-            font-size: clamp(1.5rem, 4vh, 2.5rem); cursor: pointer; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s; 
-            display: flex; justify-content: center; align-items: center;
-        }
-        #mic-btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
-        #mic-btn.recording { background-color: #ef4444; transform: scale(1.1); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4); }
-        #mic-btn.loading { background-color: #6b7280; animation: pulse 1.5s infinite; }
+
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        
-        .speech-status { font-size: 0.9rem; color: #64748b; min-height: 1.5rem; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        /* --- MCQ --- */
-        .mcq-title { font-size: clamp(1.1rem, 3vh, 1.6rem); font-weight: 700; color: #333; margin-bottom: 1rem; }
-        .mcq-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr);
-            gap: 1rem; width: 100%; max-width: 600px;
-        }
-        .mcq-option {
-            background-color: #f8fafc; border: 2px solid #e2e8f0;
-            border-radius: 0.75rem; padding: 1rem; font-size: clamp(1rem, 2.5vh, 1.3rem);
-            cursor: pointer; transition: all 0.2s ease;
-        }
-        .mcq-option:not(.disabled):hover { border-color: #38bdf8; }
-        .mcq-option.correct { background-color: #dcfce7; border-color: #22c55e; color: #166534; }
-        .mcq-option.incorrect { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
-        .mcq-option.disabled { cursor: not-allowed; opacity: 0.7; }
-
-        @media (max-width: 640px) {
-            .overview-layout { flex-direction: column; gap: 1rem; }
-            .overview-left, .overview-right { width: 100%; }
-            .overview-arrow { transform: rotate(90deg); font-size: 2rem; }
-            .mcq-grid { grid-template-columns: 1fr; }
+        @media (max-width: 480px) {
+            #course-container { border-radius: 0; }
+            .overview-container { gap: 0.5rem; }
+            .card-base { padding: 0.5rem; }
+            .mcq-container { grid-template-columns: 1fr; } /* 모바일에서 MCQ 1열 */
         }
     </style>
 </head>
@@ -198,10 +338,13 @@
 
     <div id="course-container">
         <div id="slide-wrapper"></div>
-        <div class="nav-footer">
+        
+        <div class="nav-container">
              <button id="prev-btn" class="nav-button">Précédent</button>
-             <div class="progress-wrapper">
-                 <div class="progress-bar-container"><div id="progress-bar" class="progress-bar"></div></div>
+             <div class="w-1/3 mx-2">
+                 <div class="progress-bar-container">
+                      <div id="progress-bar" class="progress-bar"></div>
+                 </div>
              </div>
              <button id="next-btn" class="nav-button">Suivant</button>
         </div>
@@ -263,7 +406,6 @@
             const VOWELS = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
             const CONSONANTS = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
 
-            // --- Physical Keyboard Map (e.code based) ---
             const CODE_MAP = {
                 'KeyQ': 'ㅂ', 'KeyW': 'ㅈ', 'KeyE': 'ㄷ', 'KeyR': 'ㄱ', 'KeyT': 'ㅅ',
                 'KeyY': 'ㅛ', 'KeyU': 'ㅕ', 'KeyI': 'ㅑ', 'KeyO': 'ㅐ', 'KeyP': 'ㅔ',
@@ -320,7 +462,7 @@
                 return text + char;
             }
 
-            // --- Speech Recording & Evaluation (Naver Clova) ---
+            // --- Speech Recording & Evaluation ---
             let mediaRecorder;
             let audioChunks = [];
             let isRecording = false;
@@ -342,7 +484,6 @@
                         const status = document.getElementById('speech-status');
                         micBtn.classList.add('recording');
                         status.textContent = "Écoute en cours...";
-                        status.style.color = "#333";
                     };
 
                     mediaRecorder.onstop = () => {
@@ -388,7 +529,6 @@
                     const score = result.assessment?.pronunciation_score || 0;
                     const recognizedText = result.text || "";
                     
-                    // Simple logic: if score > 70 OR text matches loosely
                     const isCorrect = score >= 70 || recognizedText.replace(/\s/g,'').includes(answer.replace(/\s/g,''));
 
                     if (isCorrect) {
@@ -451,21 +591,21 @@
 
                 switch (pageData.type) {
                     case 'cover':
-                        contentHTML = `<h1 class="title-text mb-6">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`;
+                        contentHTML = `<h1 class="title-text">${pageData.title}</h1><h2 class="body-text">${pageData.text}</h2>`;
                         break;
                     case 'overview':
                         const v = pageData.vocab;
                         contentHTML = `
-                            <div class="overview-layout">
+                            <div class="overview-container">
                                 <div class="overview-left">
-                                    <div class="overview-card overview-image-card" style="background-image: url('${v.image}')" data-fr="${v.fr}"></div>
-                                    <div class="overview-card" data-audio="${v.audio}">${v.kr}</div>
+                                    <div class="image-card" style="background-image: url('${v.image}')" data-fr="${v.fr}"></div>
+                                    <div class="card-base" data-audio="${v.audio}">${v.kr}</div>
                                 </div>
                                 <div class="overview-arrow">→</div>
                                 <div class="overview-right">
-                                    <div class="overview-card" data-audio="${v.formal_audio}">${v.formal}<div class="footnote">formel</div></div>
-                                    <div class="overview-card" data-audio="${v.poli_audio}">${v.poli}<div class="footnote">poli</div></div>
-                                    <div class="overview-card" data-audio="${v.informel_audio}">${v.informel}<div class="footnote">informel</div></div>
+                                    <div class="card-base" data-audio="${v.formal_audio}">${v.formal}<div class="footnote">formel</div></div>
+                                    <div class="card-base" data-audio="${v.poli_audio}">${v.poli}<div class="footnote">poli</div></div>
+                                    <div class="card-base" data-audio="${v.informel_audio}">${v.informel}<div class="footnote">informel</div></div>
                                 </div>
                             </div>`;
                         break;
@@ -489,11 +629,11 @@
                         }).join('');
 
                         contentHTML = `
-                            <div class="quiz-container">
-                                <p class="body-text">${pageData.question}</p>
+                            <div class="writing-quiz-container">
+                                <p class="body-text" style="margin-bottom: 0.5rem;">${pageData.question}</p>
                                 <div class="input-wrapper">
                                     <div id="input-display" class="input-display"></div>
-                                    <button class="key special submit-btn" data-key="check">✓</button>
+                                    <button class="submit-btn" data-key="check">✓</button>
                                 </div>
                                 <div class="keyboard">
                                     ${keyboardHTML}
@@ -507,10 +647,10 @@
                         const target = pageData.target;
                         const hintAudio = vocab[target + '_audio'];
                         contentHTML = `
-                            <div class="quiz-container">
+                            <div class="speech-container">
                                 <p class="body-text">${pageData.question}</p>
-                                <button id="mic-btn">🎙️</button>
-                                <p id="speech-status" class="speech-status">Appuyez pour parler</p>
+                                <button id="mic-btn" class="mic-btn">🎙️</button>
+                                <p id="speech-status" class="footnote">Appuyez pour parler</p>
                                 <button class="hint-button" data-audio="${hintAudio}">💡 Aide</button>
                             </div>`;
                         break;
@@ -518,8 +658,8 @@
                     case 'mcq':
                         nextBtn.textContent = 'Vérifier';
                         contentHTML = `
-                            <h2 class="mcq-title">${pageData.question}</h2>
-                            <div class="mcq-grid">
+                            <h2 class="title-text" style="font-size: clamp(1.1rem, 3vh, 1.6rem); margin-bottom: 1rem;">${pageData.question}</h2>
+                            <div class="mcq-container">
                                 ${shuffleArray([...pageData.options]).map(opt => `<button class="mcq-option" data-value="${opt}">${opt}</button>`).join('')}
                             </div>`;
                         break;
@@ -549,10 +689,7 @@
                 } else if (e.key === 'Enter') {
                     checkAnswer(pageData, inputDisplay);
                 } else {
-                    // e.code를 사용하여 한/영 상태 무관하게 물리 키 매핑
                     let keyChar = CODE_MAP[e.code];
-                    
-                    // Shift 키 처리
                     if (e.shiftKey && SHIFT_MAP[e.code]) {
                         keyChar = SHIFT_MAP[e.code];
                     }
@@ -588,7 +725,6 @@
                 if (pageData.type === 'writing_quiz') {
                     const inputDisplay = document.getElementById('input-display');
                     
-                    // Virtual Keyboard Listeners
                     slideWrapper.querySelectorAll('.key').forEach(key => {
                         key.onclick = () => {
                             initAudioSynth();
@@ -596,13 +732,15 @@
                             const val = key.dataset.key || key.textContent;
                             if (val === 'del') {
                                 inputDisplay.textContent = inputDisplay.textContent.slice(0, -1);
-                            } else if (val === 'check') {
-                                checkAnswer(pageData, inputDisplay);
                             } else {
                                 inputDisplay.textContent = processHangul(inputDisplay.textContent, val);
                             }
                         };
                     });
+                    
+                    const submitBtn = slideWrapper.querySelector('.submit-btn');
+                    if(submitBtn) submitBtn.onclick = () => checkAnswer(pageData, inputDisplay);
+
                 } else if (pageData.type === 'speaking_quiz') {
                     const micBtn = document.getElementById('mic-btn');
                     micBtn.onclick = () => {
@@ -649,7 +787,6 @@
                 initAudioSynth();
                 const pageData = coursePages[currentPage];
 
-                // MCQ Retry Logic
                 if (pageData.type === 'mcq' && nextBtn.dataset.mode === 'retry') {
                     const options = slideWrapper.querySelectorAll('.mcq-option');
                     options.forEach(o => o.classList.remove('disabled', 'incorrect'));
@@ -679,7 +816,6 @@
             nextBtn.addEventListener('click', goToNextPage);
             prevBtn.addEventListener('click', goToPrevPage);
             
-            // Global Physical Keyboard Listener
             document.addEventListener('keydown', handlePhysicalKeydown);
             
             document.body.addEventListener('click', initAudioSynth, { once: true });
